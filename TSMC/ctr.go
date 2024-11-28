@@ -177,8 +177,8 @@ func main() {
 	yy0vec := make([][]float64, nx)
 	uu0vec := make([][]float64, nx)
 	for i := 0; i < nx; i++ {
-		yy0vec[i] = vecDuplicate(yy0[i], nu, h)
-		uu0vec[i] = vecDuplicate(uu0[i], nu, h)
+		yy0vec[i] = utils.vecDuplicate(yy0[i], nu, h)
+		uu0vec[i] = utils.vecDuplicate(uu0[i], nu, h)
 	}
 
 	// Plaintext of past inputs and outputs
