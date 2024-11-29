@@ -9,11 +9,10 @@ import (
 	"bufio"
 	"encoding/csv"
 
-	"github.com/CDSL-EncryptedControl/2024SICE/utils"
+	utils "github.com/CDSL-EncryptedControl/2024SICE/utils"
+	naive "github.com/CDSL-EncryptedControl/2024SICE/utils/Naive"
 	"github.com/tuneinsight/lattigo/v6/core/rgsw"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
-
-	// "github.com/tuneinsight/lattigo/v6/ring"
 
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
@@ -23,6 +22,7 @@ import (
 )
 
 func main() {
+	// ************************* User's choice *************************
 	params, _ := rlwe.NewParametersFromLiteral(rlwe.ParametersLiteral{
 		LogN:    12,
 		LogQ:    []int{56},
@@ -31,35 +31,6 @@ func main() {
 	})
 	fmt.Println("Degree N:", params.N())
 	fmt.Println("Ciphertext modulus Q:", params.QBigInt(), "some prime close to 2^54")
-
-	kgen := rlwe.NewKeyGenerator(params)
-	sk := kgen.GenSecretKeyNew()
-	rlk := kgen.GenRelinearizationKeyNew(sk)
-	evk := rlwe.NewMemEvaluationKeySet(rlk)
-
-	encryptorRLWE := rlwe.NewEncryptor(params, sk)
-	decryptorRLWE := rlwe.NewDecryptor(params, sk)
-	encryptorRGSW := rgsw.NewEncryptor(params, sk)
-	evaluator := rgsw.NewEvaluator(params, evk)
-
-	levelQ := params.QCount() - 1
-	levelP := params.PCount() - 1
-	// decompRNS := params.BaseRNSDecompositionVectorSize(levelQ, levelP)
-	decompPw2 := params.BaseTwoDecompositionVectorSize(levelQ, levelP, 0)
-	// ringQP := params.RingQP()
-	ringQ := params.RingQ()
-
-	fmt.Println("Ciphertext modulus:", params.QBigInt())
-	fmt.Println("Degree of polynomials:", params.N())
-	fmt.Println("base 2 decomposition:", decompPw2)
-
-	// ======== Set Scale factors ========
-	s := 1 / 10000.0
-	L := 1 / 1000.0
-	r := 1 / 1000.0
-
-	// ======== Number of iterations ========
-	iter := 500
 
 	// ======== Plant matrices ========
 	A := [][]float64{
@@ -111,6 +82,35 @@ func main() {
 		{0.1791, 0.2180, -0.2738, 0.0180},
 	}
 
+	kgen := rlwe.NewKeyGenerator(params)
+	sk := kgen.GenSecretKeyNew()
+	rlk := kgen.GenRelinearizationKeyNew(sk)
+	evk := rlwe.NewMemEvaluationKeySet(rlk)
+
+	encryptorRLWE := rlwe.NewEncryptor(params, sk)
+	decryptorRLWE := rlwe.NewDecryptor(params, sk)
+	encryptorRGSW := rgsw.NewEncryptor(params, sk)
+	evaluator := rgsw.NewEvaluator(params, evk)
+
+	levelQ := params.QCount() - 1
+	levelP := params.PCount() - 1
+	// decompRNS := params.BaseRNSDecompositionVectorSize(levelQ, levelP)
+	decompPw2 := params.BaseTwoDecompositionVectorSize(levelQ, levelP, 0)
+	// ringQP := params.RingQP()
+	ringQ := params.RingQ()
+
+	fmt.Println("Ciphertext modulus:", params.QBigInt())
+	fmt.Println("Degree of polynomials:", params.N())
+	fmt.Println("base 2 decomposition:", decompPw2)
+
+	// ======== Set Scale factors ========
+	s := 1 / 10000.0
+	L := 1 / 1000.0
+	r := 1 / 1000.0
+
+	// ======== Number of iterations ========
+	iter := 500
+
 	// ======== Scale up G, R, and H to integers ========
 	Gbar := utils.ScalarMatMult(1/s, G)
 	Rbar := utils.ScalarMatMult(1/s, R)
@@ -138,10 +138,10 @@ func main() {
 	fmt.Printf("p_ \n %d \n", p_)
 	fmt.Printf("m \n %d \n", m)
 
-	ctF := naive.encryptRgsw(F, encryptorRGSW, levelQ, levelP, params)
-	ctG := naive.encryptRgsw(Gbar, encryptorRGSW, levelQ, levelP, params)
-	ctH := naive.encryptRgsw(Hbar, encryptorRGSW, levelQ, levelP, params)
-	ctR := naive.encryptRgsw(Rbar, encryptorRGSW, levelQ, levelP, params)
+	ctF := naive.EncryptRgsw(F, encryptorRGSW, levelQ, levelP, params)
+	ctG := naive.EncryptRgsw(Gbar, encryptorRGSW, levelQ, levelP, params)
+	ctH := naive.EncryptRgsw(Hbar, encryptorRGSW, levelQ, levelP, params)
+	ctR := naive.EncryptRgsw(Rbar, encryptorRGSW, levelQ, levelP, params)
 
 	// ======== Run closed-loop without encryption ========
 	fmt.Println("Nominal Loop Start")
@@ -192,7 +192,7 @@ func main() {
 	// State initialization
 	xPlantEnc := xPlantInit
 	xContEnc := utils.ScalarVecMult(1/(r*s), xContInit)
-	ctxCont := encryptRlwe(xContEnc, 1/L, *encryptorRLWE, params)
+	ctxCont := naive.EncryptRlwe(xContEnc, 1/L, *encryptorRLWE, params)
 
 	startEnc := time.Now()
 	for i := 0; i < iter; i++ {
@@ -202,34 +202,34 @@ func main() {
 
 		// Quantize and encrypt plant output
 		yOutRound := utils.RoundVec(utils.ScalarVecMult(1/r, yOut))
-		ctyOut := encryptRlwe(yOutRound, 1/L, *encryptorRLWE, params)
+		ctyOut := naive.EncryptRlwe(yOutRound, 1/L, *encryptorRLWE, params)
 
 		// Controller output
-		ctuOut := externalProduct(ctxCont, ctH, evaluator, ringQ, params)
+		ctuOut := naive.ExternalProduct(ctxCont, ctH, evaluator, ringQ, params)
 
 		// Decrypt controller output and construct plant input
-		uOut := decryptRlwe(ctuOut, *decryptorRLWE, r*s*s*L, params)
+		uOut := naive.DecryptRlwe(ctuOut, *decryptorRLWE, r*s*s*L, params)
 
 		// Re-encrypt controller output
-		ctuReEnc := encryptRlwe(uOut, 1/(r*L), *encryptorRLWE, params)
+		ctuReEnc := naive.EncryptRlwe(uOut, 1/(r*L), *encryptorRLWE, params)
 
 		// Plant state update
 		xPlantEnc = utils.VecAdd(utils.MatVecMult(A, xPlantEnc), utils.MatVecMult(B, uOut))
 
 		// Controller state update
-		ctFx := externalProduct(ctxCont, ctF, evaluator, ringQ, params)
-		ctGy := externalProduct(ctyOut, ctG, evaluator, ringQ, params)
-		ctRu := externalProduct(ctuReEnc, ctR, evaluator, ringQ, params)
-		ctxCont = ctAdd(ctFx, ctGy, params)
-		ctxCont = ctAdd(ctxCont, ctRu, params)
+		ctFx := naive.ExternalProduct(ctxCont, ctF, evaluator, ringQ, params)
+		ctGy := naive.ExternalProduct(ctyOut, ctG, evaluator, ringQ, params)
+		ctRu := naive.ExternalProduct(ctuReEnc, ctR, evaluator, ringQ, params)
+		ctxCont = naive.CtVecAdd(ctFx, ctGy, params)
+		ctxCont = naive.CtVecAdd(ctxCont, ctRu, params)
 
 		elapsedEncIter := time.Now().Sub(startEncIter)
 
 		// Decrypt controller state just for validation
-		valxCont := decryptRlwe(ctxCont, *decryptorRLWE, r*s*L, params)
+		valxCont := naive.DecryptRlwe(ctxCont, *decryptorRLWE, r*s*L, params)
 
 		// Decrypt plant output just for validation
-		valyOut := decryptRlwe(ctyOut, *decryptorRLWE, r*L, params)
+		valyOut := naive.DecryptRlwe(ctyOut, *decryptorRLWE, r*L, params)
 
 		// Append data
 		YOUTENC = append(YOUTENC, valyOut)
