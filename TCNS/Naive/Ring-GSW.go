@@ -8,39 +8,18 @@ import (
 
 	"bufio"
 	"encoding/csv"
-	"strconv"
 
-	"github.com/tuneinsight/lattigo/v4/rgsw"
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe/ringqp"
+	"github.com/CDSL-EncryptedControl/2024SICE/utils"
+	"github.com/tuneinsight/lattigo/v6/core/rgsw"
+	"github.com/tuneinsight/lattigo/v6/core/rlwe"
+	"github.com/tuneinsight/lattigo/v6/ring"
+
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
-
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/vg/draw"
 	"gonum.org/v1/plot/vg/vgimg"
 )
-
-func mat2string(A [][]float64) [][]string {
-	Astr := make([][]string, len(A))
-	for i := 0; i < len(A); i++ {
-		Astr[i] = make([]string, len(A[0]))
-		for j := range A[0] {
-			Astr[i][j] = strconv.FormatFloat(A[i][j], 'f', -1, 64)
-		}
-	}
-	return Astr
-}
-
-func vec2string(A []float64) [][]string {
-	Astr := make([][]string, len(A))
-	for i := 0; i < len(A); i++ {
-		Astr[i] = make([]string, 1)
-		Astr[i][0] = strconv.FormatFloat(A[i], 'f', -1, 64)
-	}
-	return Astr
-}
 
 func modZq(a [][]float64, params rlwe.Parameters) [][]float64 {
 	// Components of the matrix 'a' belongs to [-q/2, q/2)
@@ -92,12 +71,13 @@ func externalProduct(ctB []*rlwe.Ciphertext, ctA [][]*rgsw.Ciphertext, evaluator
 
 func encryptRlwe(A []float64, scale float64, encryptor rlwe.Encryptor, params rlwe.Parameters) []*rlwe.Ciphertext {
 	// Encrypts an n-dimensional float vector A into an n-dimensional RLWE ciphertexts vector ctA after scaling
+	var err error
 
 	row := len(A)
 	ctA := make([]*rlwe.Ciphertext, row)
 
 	// Scale up. Scale should be chosen so that A_ is a vector consisting of integers in [-q/2, q/2)
-	A_ := scalarVecMult(scale, A)
+	A_ := utils.ScalarVecMult(scale, A)
 
 	modA := modZqVec(A_, params)
 	for r := 0; r < row; r++ {
@@ -105,13 +85,16 @@ func encryptRlwe(A []float64, scale float64, encryptor rlwe.Encryptor, params rl
 		for i := 0; i < params.N(); i++ {
 			pt.Value.Coeffs[0][i] = uint64(modA[r])
 		}
-		ctA[r] = encryptor.EncryptNew(pt)
+		ctA[r], err = encryptor.EncryptNew(pt)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return ctA
 }
 
-func encryptRgsw(A [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP int, decompRNS int, decompPw2 int, ringQP *ringqp.Ring, params rlwe.Parameters) [][]*rgsw.Ciphertext {
+func encryptRgsw(A [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP int, params rlwe.Parameters) [][]*rgsw.Ciphertext {
 	// Encrypts an m-by-n-dimensional float matrix A into an m-by-n-dimensional RGSW ciphertexts matrix ctA
 
 	row := len(A)
@@ -125,8 +108,7 @@ func encryptRgsw(A [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP in
 			for i := 0; i < params.N(); i++ {
 				pt.Value.Coeffs[0][i] = uint64(modA[r][c])
 			}
-
-			ctA[r][c] = rgsw.NewCiphertext(levelQ, levelP, decompRNS, decompPw2, *ringQP)
+			ctA[r][c] = rgsw.NewCiphertext(params, levelQ, levelP, 0)
 			encryptor.Encrypt(pt, ctA[r][c])
 		}
 	}
@@ -144,7 +126,7 @@ func decryptRlwe(ctA []*rlwe.Ciphertext, decryptor rlwe.Decryptor, scale float64
 	for r := 0; r < row; r++ {
 		pt := decryptor.DecryptNew(ctA[r])
 		if pt.IsNTT {
-			params.RingQ().InvNTT(pt.Value, pt.Value)
+			params.RingQ().INTT(pt.Value, pt.Value)
 		}
 		// Constant terms
 		val := float64(pt.Value.Coeffs[0][0])
@@ -172,100 +154,20 @@ func ctAdd(ctA []*rlwe.Ciphertext, ctB []*rlwe.Ciphertext, params rlwe.Parameter
 	return ctC
 }
 
-func vec2norm(v []float64) float64 {
-	tmp := 0.0
-	for i := range v {
-		tmp = tmp + v[i]*v[i]
-	}
-	return math.Sqrt(tmp)
-}
-
-func vecSubtract(v1 []float64, v2 []float64) []float64 {
-	vReturn := make([]float64, len(v1))
-	for i := range v1 {
-		vReturn[i] = v1[i] - v2[i]
-	}
-	return vReturn
-}
-
-func scalarMatMult(s float64, M [][]float64) [][]float64 {
-	C := make([][]float64, len(M))
-	for i := 0; i < len(M); i++ {
-		C[i] = make([]float64, len(M[0]))
-		for j := range M[i] {
-			C[i][j] = s * M[i][j]
-		}
-	}
-	return C
-}
-
-func scalarVecMult(s float64, V []float64) []float64 {
-	C := make([]float64, len(V))
-	for i := 0; i < len(V); i++ {
-		C[i] = s * V[i]
-	}
-	return C
-}
-
-func roundVec(M []float64) []float64 {
-	C := make([]float64, len(M))
-	for i := range M {
-		C[i] = math.Round(M[i])
-	}
-	return C
-}
-
-func matVecMult(A [][]float64, B []float64) []float64 {
-	// A : m x n
-	// B : n x l
-
-	m := len(A)
-	n := len(A[0])
-	n1 := len(B)
-
-	if n != n1 {
-		panic(fmt.Errorf("Matrix dimension don't match"))
-	}
-
-	C := make([]float64, m)
-
-	for i := 0; i < m; i++ {
-		tmp := 0.0
-		for k := 0; k < n; k++ {
-			tmp = tmp + A[i][k]*B[k]
-		}
-		C[i] = tmp
-	}
-	return C
-}
-
-func vecAdd(A []float64, B []float64) []float64 {
-	// A : m x 1
-	// B : m x 1
-
-	m := len(A)
-	C := make([]float64, m)
-
-	for i := 0; i < m; i++ {
-		C[i] = A[i] + B[i]
-	}
-	return C
-}
-
 func main() {
 	params, _ := rlwe.NewParametersFromLiteral(rlwe.ParametersLiteral{
-		LogN:           12,
-		LogQ:           []int{56},
-		Pow2Base:       7,
-		DefaultNTTFlag: true,
+		LogN:    12,
+		LogQ:    []int{56},
+		LogP:    []int{42},
+		NTTFlag: true,
 	})
 	fmt.Println("Degree N:", params.N())
 	fmt.Println("Ciphertext modulus Q:", params.QBigInt(), "some prime close to 2^54")
 
 	kgen := rlwe.NewKeyGenerator(params)
-	sk := kgen.GenSecretKey()
-	rlk := kgen.GenRelinearizationKey(sk, 1)
-	evk := &rlwe.EvaluationKey{Rlk: rlk}
+	sk := kgen.GenSecretKeyNew()
+	rlk := kgen.GenRelinearizationKeyNew(sk)
+	evk := rlwe.NewMemEvaluationKeySet(rlk)
 
 	encryptorRLWE := rlwe.NewEncryptor(params, sk)
 	decryptorRLWE := rlwe.NewDecryptor(params, sk)
@@ -274,18 +176,22 @@ func main() {
 
 	levelQ := params.QCount() - 1
 	levelP := params.PCount() - 1
-	decompRNS := params.DecompRNS(levelQ, levelP)
-	decompPw2 := params.DecompPw2(levelQ, levelP)
-	ringQP := params.RingQP()
+	// decompRNS := params.BaseRNSDecompositionVectorSize(levelQ, levelP)
+	decompPw2 := params.BaseTwoDecompositionVectorSize(levelQ, levelP, 0)
+	// ringQP := params.RingQP()
 	ringQ := params.RingQ()
+
+	fmt.Println("Ciphertext modulus:", params.QBigInt())
+	fmt.Println("Degree of polynomials:", params.N())
+	fmt.Println("base 2 decomposition:", decompPw2)
 
 	// ======== Set Scale factors ========
 	s := 1 / 10000.0
-	L := 1 / 10000.0
-	r := 1 / 10000.0
+	L := 1 / 1000.0
+	r := 1 / 1000.0
 
 	// ======== Number of iterations ========
-	iter := 10
+	iter := 500
 
 	// ======== Plant matrices ========
 	A := [][]float64{
@@ -338,9 +244,9 @@ func main() {
 	}
 
 	// ======== Scale up G, R, and H to integers ========
-	Gbar := scalarMatMult(1/s, G)
-	Rbar := scalarMatMult(1/s, R)
-	Hbar := scalarMatMult(1/s, H)
+	Gbar := utils.ScalarMatMult(1/s, G)
+	Rbar := utils.ScalarMatMult(1/s, R)
+	Hbar := utils.ScalarMatMult(1/s, H)
 
 	// ======== Plant and Controller initial state ========
 	xPlantInit := []float64{
@@ -364,10 +270,10 @@ func main() {
 	fmt.Printf("p_ \n %d \n", p_)
 	fmt.Printf("m \n %d \n", m)
 
-	ctF := encryptRgsw(F, encryptorRGSW, levelQ, levelP, decompRNS, decompPw2, ringQP, params)
-	ctG := encryptRgsw(Gbar, encryptorRGSW, levelQ, levelP, decompRNS, decompPw2, ringQP, params)
-	ctH := encryptRgsw(Hbar, encryptorRGSW, levelQ, levelP, decompRNS, decompPw2, ringQP, params)
-	ctR := encryptRgsw(Rbar, encryptorRGSW, levelQ, levelP, decompRNS, decompPw2, ringQP, params)
+	ctF := encryptRgsw(F, encryptorRGSW, levelQ, levelP, params)
+	ctG := encryptRgsw(Gbar, encryptorRGSW, levelQ, levelP, params)
+	ctH := encryptRgsw(Hbar, encryptorRGSW, levelQ, levelP, params)
+	ctR := encryptRgsw(Rbar, encryptorRGSW, levelQ, levelP, params)
 
 	// ======== Run closed-loop without encryption ========
 	fmt.Println("Nominal Loop Start")
@@ -385,17 +291,17 @@ func main() {
 	startUnenc := time.Now()
 	for i := 0; i < iter; i++ {
 		// Plant output
-		yOut := matVecMult(C, xPlantUnenc)
+		yOut := utils.MatVecMult(C, xPlantUnenc)
 
 		// Controller output
-		uOut := matVecMult(H, xContUnenc)
+		uOut := utils.MatVecMult(H, xContUnenc)
 
 		// Plant state update
-		xPlantUnenc = vecAdd(matVecMult(A, xPlantUnenc), matVecMult(B, uOut))
+		xPlantUnenc = utils.VecAdd(utils.MatVecMult(A, xPlantUnenc), utils.MatVecMult(B, uOut))
 
 		// Controller state update
-		xContUnenc = vecAdd(matVecMult(F, xContUnenc), matVecMult(G, yOut))
-		xContUnenc = vecAdd(xContUnenc, matVecMult(R, uOut))
+		xContUnenc = utils.VecAdd(utils.MatVecMult(F, xContUnenc), utils.MatVecMult(G, yOut))
+		xContUnenc = utils.VecAdd(xContUnenc, utils.MatVecMult(R, uOut))
 
 		// Append data
 		YOUT = append(YOUT, yOut)
@@ -417,30 +323,30 @@ func main() {
 
 	// State initialization
 	xPlantEnc := xPlantInit
-	xContEnc := scalarVecMult(1/(r*s), xContInit)
-	ctxCont := encryptRlwe(xContEnc, 1/L, encryptorRLWE, params)
+	xContEnc := utils.ScalarVecMult(1/(r*s), xContInit)
+	ctxCont := encryptRlwe(xContEnc, 1/L, *encryptorRLWE, params)
 
 	startEnc := time.Now()
 	for i := 0; i < iter; i++ {
 		startEncIter := time.Now()
 		// Plant output
-		yOut := matVecMult(C, xPlantEnc)
+		yOut := utils.MatVecMult(C, xPlantEnc)
 
 		// Quantize and encrypt plant output
-		yOutRound := roundVec(scalarVecMult(1/r, yOut))
-		ctyOut := encryptRlwe(yOutRound, 1/L, encryptorRLWE, params)
+		yOutRound := utils.RoundVec(utils.ScalarVecMult(1/r, yOut))
+		ctyOut := encryptRlwe(yOutRound, 1/L, *encryptorRLWE, params)
 
 		// Controller output
 		ctuOut := externalProduct(ctxCont, ctH, evaluator, ringQ, params)
 
 		// Decrypt controller output and construct plant input
-		uOut := decryptRlwe(ctuOut, decryptorRLWE, r*s*s*L, params)
+		uOut := decryptRlwe(ctuOut, *decryptorRLWE, r*s*s*L, params)
 
 		// Re-encrypt controller output
-		ctuReEnc := encryptRlwe(uOut, 1/(r*L), encryptorRLWE, params)
+		ctuReEnc := encryptRlwe(uOut, 1/(r*L), *encryptorRLWE, params)
 
 		// Plant state update
-		xPlantEnc = vecAdd(matVecMult(A, xPlantEnc), matVecMult(B, uOut))
+		xPlantEnc = utils.VecAdd(utils.MatVecMult(A, xPlantEnc), utils.MatVecMult(B, uOut))
 
 		// Controller state update
 		ctFx := externalProduct(ctxCont, ctF, evaluator, ringQ, params)
@@ -452,10 +358,10 @@ func main() {
 		elapsedEncIter := time.Now().Sub(startEncIter)
 
 		// Decrypt controller state just for validation
-		valxCont := decryptRlwe(ctxCont, decryptorRLWE, r*s*L, params)
+		valxCont := decryptRlwe(ctxCont, *decryptorRLWE, r*s*L, params)
 
 		// Decrypt plant output just for validation
-		valyOut := decryptRlwe(ctyOut, decryptorRLWE, r*L, params)
+		valyOut := decryptRlwe(ctyOut, *decryptorRLWE, r*L, params)
 
 		// Append data
 		YOUTENC = append(YOUTENC, valyOut)
@@ -507,13 +413,13 @@ func main() {
 			if i == 0 {
 				if j == 0 {
 					for k := range pts {
-						pts[k].Y = vec2norm(vecSubtract(XPLANT[k], XPLANTENC[k]))
+						pts[k].Y = utils.Vec2Norm(utils.VecSub(XPLANT[k], XPLANTENC[k]))
 
 					}
 					p.Title.Text = "Plant State Difference"
 				} else if j == 1 {
 					for k := range pts {
-						pts[k].Y = vec2norm(vecSubtract(YOUT[k], YOUTENC[k]))
+						pts[k].Y = utils.Vec2Norm(utils.VecSub(YOUT[k], YOUTENC[k]))
 					}
 					p.Title.Text = "Plant Output Difference"
 				}
@@ -522,13 +428,13 @@ func main() {
 				// Second row
 				if j == 0 {
 					for k := range pts {
-						pts[k].Y = vec2norm(vecSubtract(XCONT[k], XCONTENC[k]))
+						pts[k].Y = utils.Vec2Norm(utils.VecSub(XCONT[k], XCONTENC[k]))
 
 					}
 					p.Title.Text = "Controller State Difference"
 				} else if j == 1 {
 					for k := range pts {
-						pts[k].Y = vec2norm(vecSubtract(UOUT[k], UOUTENC[k]))
+						pts[k].Y = utils.Vec2Norm(utils.VecSub(UOUT[k], UOUTENC[k]))
 					}
 					p.Title.Text = "Controller Output Difference"
 				}
@@ -585,7 +491,7 @@ func main() {
 		panic(err)
 	}
 	wrUOUT := csv.NewWriter(bufio.NewWriter(fileUOUT))
-	UOUTstr := mat2string(UOUT)
+	UOUTstr := utils.MatToString(UOUT)
 	wrUOUT.WriteAll(UOUTstr)
 
 	fileUOUTENC, err := os.Create("./uEnc.csv")
@@ -593,7 +499,7 @@ func main() {
 		panic(err)
 	}
 	wrUOUTENC := csv.NewWriter(bufio.NewWriter(fileUOUTENC))
-	UOUTENCstr := mat2string(UOUTENC)
+	UOUTENCstr := utils.MatToString(UOUTENC)
 	wrUOUTENC.WriteAll(UOUTENCstr)
 
 	fileTENC, err := os.Create("./TEncNaiveLarge.csv")
@@ -601,6 +507,6 @@ func main() {
 		panic(err)
 	}
 	wrTENC := csv.NewWriter(bufio.NewWriter(fileTENC))
-	TENCstr := vec2string(TENC)
+	TENCstr := utils.VecToString(TENC)
 	wrTENC.WriteAll(TENCstr)
 }

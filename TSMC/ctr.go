@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/CDSL-EncryptedControl/2024SICE/utils"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
 	"github.com/tuneinsight/lattigo/v6/schemes/bgv"
@@ -177,8 +178,8 @@ func main() {
 	yy0vec := make([][]float64, nx)
 	uu0vec := make([][]float64, nx)
 	for i := 0; i < nx; i++ {
-		yy0vec[i] = utils.vecDuplicate(yy0[i], nu, h)
-		uu0vec[i] = utils.vecDuplicate(uu0[i], nu, h)
+		yy0vec[i] = utils.VecDuplicate(yy0[i], nu, h)
+		uu0vec[i] = utils.VecDuplicate(uu0[i], nu, h)
 	}
 
 	// Plaintext of past inputs and outputs
@@ -197,19 +198,19 @@ func main() {
 	// Quantization - packing - encryption
 	for i := 0; i < nx; i++ {
 		ptY[i] = bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(modVecFloat(roundVec(scalarVecMult(1/L, yy0vec[i])), params.PlaintextModulus()), ptY[i])
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, yy0vec[i])), params.PlaintextModulus()), ptY[i])
 		ctY[i], _ = encryptor.EncryptNew(ptY[i])
 
 		ptU[i] = bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(modVecFloat(roundVec(scalarVecMult(1/L, uu0vec[i])), params.PlaintextModulus()), ptU[i])
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, uu0vec[i])), params.PlaintextModulus()), ptU[i])
 		ctU[i], _ = encryptor.EncryptNew(ptU[i])
 
 		ptHy[i] = bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(modVecFloat(roundVec(scalarVecMult(1/s, Hy[i])), params.PlaintextModulus()), ptHy[i])
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/s, Hy[i])), params.PlaintextModulus()), ptHy[i])
 		ctHy[i], _ = encryptor.EncryptNew(ptHy[i])
 
 		ptHu[i] = bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(modVecFloat(roundVec(scalarVecMult(1/s, Hu[i])), params.PlaintextModulus()), ptHu[i])
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/s, Hu[i])), params.PlaintextModulus()), ptHu[i])
 		ctHu[i], _ = encryptor.EncryptNew(ptHu[i])
 	}
 
@@ -227,19 +228,19 @@ func main() {
 	uUnenc := [][]float64{}
 	xpUnenc := [][]float64{}
 	xcUnenc := [][]float64{}
-	xpUnenc = appendVecToMat(xpUnenc, xp0)
-	xcUnenc = appendVecToMat(xcUnenc, x0)
+	xpUnenc = utils.AppendVecToMat(xpUnenc, xp0)
+	xcUnenc = utils.AppendVecToMat(xcUnenc, x0)
 
 	for i := 0; i < nsim; i++ {
-		y := matMult(C, xp)
-		u := matMult(H, xc)
-		xp = matAdd(matMult(A, xp), matMult(B, u))
-		xc = matAdd(matMult(F, xc), matMult(G, y))
+		y := utils.MatMatMult(C, xp)
+		u := utils.MatMatMult(H, xc)
+		xp = utils.MatAdd(utils.MatMatMult(A, xp), utils.MatMatMult(B, u))
+		xc = utils.MatAdd(utils.MatMatMult(F, xc), utils.MatMatMult(G, y))
 
-		yUnenc = appendVecToMat(yUnenc, y)
-		uUnenc = appendVecToMat(uUnenc, u)
-		xpUnenc = appendVecToMat(xpUnenc, xp)
-		xcUnenc = appendVecToMat(xcUnenc, xc)
+		yUnenc = utils.AppendVecToMat(yUnenc, y)
+		uUnenc = utils.AppendVecToMat(uUnenc, u)
+		xpUnenc = utils.AppendVecToMat(xpUnenc, xp)
+		xcUnenc = utils.AppendVecToMat(xcUnenc, xc)
 	}
 
 	// 2) Plant + encrypted controller
@@ -257,7 +258,7 @@ func main() {
 	yEnc := [][]float64{}
 	uEnc := [][]float64{}
 	xpEnc := [][]float64{}
-	xpEnc = appendVecToMat(xpEnc, xp0)
+	xpEnc = utils.AppendVecToMat(xpEnc, xp0)
 
 	// For time check
 	period := make([][]float64, nsim)
@@ -265,13 +266,13 @@ func main() {
 
 	for i := 0; i < nsim; i++ {
 		// Plant output
-		Y := matMult(C, XP) // [][]float64
+		Y := utils.MatMatMult(C, XP) // [][]float64
 
 		startPeriod[i] = time.Now()
 
 		// Sensor
 		// Quantize and duplicate
-		Ysens := modVecFloat(roundVec(scalarVecMult(1/L, vecDuplicate(mat2vec(Y), nu, h))), params.PlaintextModulus())
+		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(utils.MatToVec(Y), nu, h))), params.PlaintextModulus())
 		Ypacked := bgv.NewPlaintext(params, params.MaxLevel())
 		encoder.Encode(Ysens, Ypacked)
 		Ycin, _ := encryptor.EncryptNew(Ypacked)
@@ -288,12 +289,12 @@ func main() {
 		encoder.Decode(decryptor.DecryptNew(Uout), Uact)
 		// Generate plant input
 		for k := 0; k < nu; k++ {
-			Usum[k] = vecSumUint(Uact[k*h:(k+1)*h], params.PlaintextModulus(), bredparams)
-			U[k] = []float64{L * s * signFloat(float64(Usum[k]), params.PlaintextModulus())}
+			Usum[k] = utils.VecSumUint(Uact[k*h:(k+1)*h], params.PlaintextModulus(), bredparams)
+			U[k] = []float64{L * s * utils.SignFloat(float64(Usum[k]), params.PlaintextModulus())}
 		}
 		// Re-encryption
 		Upacked := bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(modVecFloat(roundVec(scalarVecMult(1/L, vecDuplicate(mat2vec(U), nu, h))), params.PlaintextModulus()), Upacked)
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(utils.MatToVec(U), nu, h))), params.PlaintextModulus()), Upacked)
 		Ucin, _ := encryptor.EncryptNew(Upacked)
 
 		// Controller state update
@@ -303,21 +304,21 @@ func main() {
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 
 		// Plant state update
-		XP = matAdd(matMult(A, XP), matMult(B, U))
+		XP = utils.MatAdd(utils.MatMatMult(A, XP), utils.MatMatMult(B, U))
 
 		// Save data
-		yEnc = appendVecToMat(yEnc, Y)
-		uEnc = appendVecToMat(uEnc, U)
-		xpEnc = appendVecToMat(xpEnc, XP)
+		yEnc = utils.AppendVecToMat(yEnc, Y)
+		uEnc = utils.AppendVecToMat(uEnc, U)
+		xpEnc = utils.AppendVecToMat(xpEnc, XP)
 	}
 
-	avgPeriod := average(mat2vec(period))
+	avgPeriod := utils.Average(utils.MatToVec(period))
 	fmt.Println("Average elapsed time for a control period:", avgPeriod, "ms")
 
 	// Compare plant input between 1) and 2)
 	uDiff := make([][]float64, nsim)
 	for i := range uDiff {
-		uDiff[i] = []float64{vec2norm(subVec(uUnenc[i], uEnc[i]))}
+		uDiff[i] = []float64{utils.Vec2Norm(utils.VecSub(uUnenc[i], uEnc[i]))}
 	}
 
 	// =========== Export data ===========
@@ -328,7 +329,7 @@ func main() {
 		panic(err)
 	}
 	wr1 := csv.NewWriter(bufio.NewWriter(file1))
-	wr1.WriteAll(mat2string(xpEnc))
+	wr1.WriteAll(utils.MatToString(xpEnc))
 
 	// Plant intput from encrypted controller
 	file2, err := os.Create("./uEnc.csv")
@@ -336,7 +337,7 @@ func main() {
 		panic(err)
 	}
 	wr2 := csv.NewWriter(bufio.NewWriter(file2))
-	wr2.WriteAll(mat2string(uEnc))
+	wr2.WriteAll(utils.MatToString(uEnc))
 
 	// Plant output with encrypted controller
 	file3, err := os.Create("./yEnc.csv")
@@ -344,7 +345,7 @@ func main() {
 		panic(err)
 	}
 	wr3 := csv.NewWriter(bufio.NewWriter(file3))
-	wr3.WriteAll(mat2string(yEnc))
+	wr3.WriteAll(utils.MatToString(yEnc))
 
 	// Performance of encrypted controller
 	file4, err := os.Create("./uDiff.csv")
@@ -352,7 +353,7 @@ func main() {
 		panic(err)
 	}
 	wr4 := csv.NewWriter(bufio.NewWriter(file4))
-	wr4.WriteAll(mat2string(uDiff))
+	wr4.WriteAll(utils.MatToString(uDiff))
 
 	// Elapsed time
 	file5, err := os.Create("./period.csv")
@@ -360,5 +361,5 @@ func main() {
 		panic(err)
 	}
 	wr5 := csv.NewWriter(bufio.NewWriter(file5))
-	wr5.WriteAll(mat2string(period))
+	wr5.WriteAll(utils.MatToString(period))
 }
