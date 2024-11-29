@@ -28,6 +28,7 @@ func MatToString(A [][]float64) [][]string {
 	return Astr
 }
 
+// Convert a vector to a string
 func VecToString(A []float64) [][]string {
 	Astr := make([][]string, len(A))
 	for i := 0; i < len(A); i++ {
@@ -37,7 +38,8 @@ func VecToString(A []float64) [][]string {
 	return Astr
 }
 
-// A must have 1 column
+// Convert a matrix to a vector
+// The matrix must have 1 column
 func MatToVec(A [][]float64) []float64 {
 	b := make([]float64, len(A))
 	if len(A[0]) > 1 {
@@ -51,10 +53,11 @@ func MatToVec(A [][]float64) []float64 {
 	return b
 }
 
-// Result: [A, B] of size n x (T+1)
+// Append a vector to a matrix (column-wise)
+// A      : n x T
+// B      : n x 1
+// Result : [A, B] of size n x (T+1)
 func AppendVecToMat(A [][]float64, B [][]float64) [][]float64 {
-	// A : n x T
-	// B : n x 1
 	m := len(B)
 	vec := make([]float64, m)
 	for i := 0; i < m; i++ {
@@ -92,14 +95,26 @@ func VecDuplicate(a []float64, n int, h int) []float64 {
 
 // mod q of float vector
 // Each component of b belongs to [0, q).
-func ModVecFloat(a []float64, q uint64) []uint64 {
+func ModVecFloat(v []float64, q uint64) []uint64 {
 	qf := float64(q)
-	b := make([]uint64, len(a))
-	for i := 0; i < len(a); i++ {
-		b[i] = uint64(a[i] - math.Floor(a[i]/qf)*qf)
+	b := make([]uint64, len(v))
+	for i := 0; i < len(v); i++ {
+		b[i] = uint64(v[i] - math.Floor(v[i]/qf)*qf)
 	}
 
 	return b
+}
+
+func ModMatFloat(M [][]float64, q uint64) [][]uint64 {
+	qf := float64(q)
+	MReturn := make([][]uint64, len(M))
+	for r := 0; r < len(M); r++ {
+		MReturn[r] = make([]uint64, len(M[0]))
+		for c := 0; c < len(M[0]); c++ {
+			MReturn[r][c] = uint64(M[r][c] - math.Floor(M[r][c]/qf)*qf)
+		}
+	}
+	return MReturn
 }
 
 // Each component of b belongs to (-T/2, T/2).
@@ -109,11 +124,12 @@ func SignFloat(a float64, T uint64) float64 {
 	return b
 }
 
-func Average(a []float64) float64 {
+// Takes average of a vector v
+func Average(v []float64) float64 {
 	avg := float64(0)
-	for i := 0; i < len(a); i++ {
-		avg += a[i]
+	for i := 0; i < len(v); i++ {
+		avg += v[i]
 	}
-	avg = avg / float64(len(a))
+	avg = avg / float64(len(v))
 	return avg
 }

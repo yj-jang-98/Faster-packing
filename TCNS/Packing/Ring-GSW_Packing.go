@@ -22,33 +22,6 @@ import (
 	"gonum.org/v1/plot/vg/vgimg"
 )
 
-func modZq(a [][]float64, params rlwe.Parameters) [][]float64 {
-	// Components of the matrix 'a' belongs to [-q/2, q/2)
-	// Takes the modulo operation and maps all components to [0,q)
-
-	q := float64(params.Q()[0])
-	b := make([][]float64, len(a))
-	for i := 0; i < len(a); i++ {
-		b[i] = make([]float64, len(a[0]))
-		for j := 0; j < len(a[0]); j++ {
-			b[i][j] = a[i][j] - math.Floor(a[i][j]/q)*q
-		}
-	}
-	return b
-}
-
-func modZqVec(a []float64, params rlwe.Parameters) []float64 {
-	// Components of the vector 'a' belongs to [-q/2, q/2)
-	// Takes the modulo operation and maps all components to [0,q)
-
-	q := float64(params.Q()[0])
-	b := make([]float64, len(a))
-	for i := 0; i < len(a); i++ {
-		b[i] = a[i] - math.Floor(a[i]/q)*q
-	}
-	return b
-}
-
 func externalProduct(ctB []*rlwe.Ciphertext, ctA []*rgsw.Ciphertext, evaluatorRGSW *rgsw.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
 	// Computes the external product between ctA and ctB
 	// ctA: n-dimensional RLWE ciphertexts vector
@@ -132,10 +105,10 @@ func encryptRlwe(A []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ
 	row := len(A)
 	ctA := make([]*rlwe.Ciphertext, row)
 	A_ := utils.ScalarVecMult(scale, A)
-	modA := modZqVec(A_, params)
+	modA := utils.ModVecFloat(A_, params.Q()[0])
 	for r := 0; r < row; r++ {
 		pt := rlwe.NewPlaintext(params, params.MaxLevel())
-		pt.Value.Coeffs[0][0] = uint64(modA[r])
+		pt.Value.Coeffs[0][0] = modA[r]
 		ringQ.NTT(pt.Value, pt.Value)
 		ctA[r], err = encryptorRLWE.EncryptNew(pt)
 		if err != nil {
@@ -152,12 +125,12 @@ func encryptRgsw(A [][]float64, tau int, encryptorRGSW *rgsw.Encryptor, levelQ i
 	row := len(A)
 	col := len(A[0])
 	ctA := make([]*rgsw.Ciphertext, col)
-	modA := modZq(A, params)
+	modA := utils.ModMatFloat(A, params.Q()[0])
 	for c := 0; c < col; c++ {
 		pt := rlwe.NewPlaintext(params, params.MaxLevel())
 		for j := 0; j < row; j++ {
 			// Store in the packing slots
-			pt.Value.Coeffs[0][params.N()*j/tau] = uint64(modA[j][c])
+			pt.Value.Coeffs[0][params.N()*j/tau] = modA[j][c]
 		}
 		ringQ.NTT(pt.Value, pt.Value)
 		ctA[c] = rgsw.NewCiphertext(params, levelQ, levelP, 0)
