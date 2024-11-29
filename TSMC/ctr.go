@@ -1,11 +1,8 @@
 package main
 
 import (
-	"bufio"
-	"encoding/csv"
 	"fmt"
 	"math"
-	"os"
 	"time"
 
 	"github.com/CDSL-EncryptedControl/2024SICE/utils"
@@ -15,9 +12,10 @@ import (
 )
 
 func main() {
-
+	// *****************************************************************
 	// ************************* User's choice *************************
-	// Encryption parameters
+	// *****************************************************************
+	// ============== Encryption parameters ==============
 	// Refer to ``Homomorphic encryption standard''
 
 	// log2 of polynomial degree
@@ -27,7 +25,7 @@ func main() {
 	// Choose the size of ciphertext modulus (2^ctSize)
 	ctSize := int(74)
 
-	// Plant model
+	// ============== Plant model ==============
 	A := [][]float64{
 		{1, 0.0020, 0.0663, 0.0047, 0.0076},
 		{0, 1.0077, 2.0328, -0.5496, -0.0591},
@@ -50,15 +48,15 @@ func main() {
 		{0, 0, 0, 0, 1},
 	}
 	// Plant initial state
-	xp0 := [][]float64{
-		{1},
-		{-1},
-		{0},
-		{0.7},
-		{1},
+	xp0 := []float64{
+		1,
+		-1,
+		0,
+		0.7,
+		1,
 	}
 
-	// Pre-designed controller
+	// ============== Pre-designed controller ==============
 	F := [][]float64{
 		{0.4064, 0.0014, 0.0004, 0.0053, 0.0009},
 		{-0.1216, 0.2237, -1.0968, -0.0641, -0.1033},
@@ -106,12 +104,12 @@ func main() {
 			-0.0071, 0.0147, 0, 0, 0},
 	}
 	// Controller initial state
-	x0 := [][]float64{
-		{-0.001},
-		{0.013},
-		{0.2},
-		{-0.02},
-		{0},
+	xc0 := []float64{
+		-0.001,
+		0.013,
+		0.2,
+		-0.02,
+		0,
 	}
 	// initial [y(-n); ...; y(-1)] (obtained by MATLAB)
 	yy0 := [][]float64{
@@ -130,14 +128,14 @@ func main() {
 		{-0.5578, 0.7293},
 	}
 
-	// Quantization parameters
+	// ============== Quantization parameters ==============
 	L := 0.00050
 	s := 0.00010
 	fmt.Println("Scaling parameters 1/L:", 1/L, "1/s:", 1/s)
+	// *****************************************************************
+	// *****************************************************************
 
-	// ****************************************************************************************************
-
-	// =========== Encryption settings ===========
+	// ============== Encryption settings ==============
 	// Search a proper prime to set plaintext modulus
 	primeGen := ring.NewNTTFriendlyPrimesGenerator(ptSize, uint64(math.Pow(2, float64(logN)+1)))
 	ptModulus, _ := primeGen.NextAlternatingPrime()
@@ -167,7 +165,7 @@ func main() {
 
 	bredparams := ring.GenBRedConstant(params.PlaintextModulus())
 
-	// =========== Encryption of controller ===========
+	// ==============  Encryption of controller ==============
 	// dimensions
 	nx := len(A)
 	ny := len(C)
@@ -214,41 +212,41 @@ func main() {
 		ctHu[i], _ = encryptor.EncryptNew(ptHu[i])
 	}
 
-	// =========== Simulation ===========
+	// ============== Simulation ==============
 	// Number of simulation steps
-	nsim := 100
+	iter := 100
+	fmt.Printf("Number of iterations: %v", iter)
 
 	// 1) Plant + unencrypted (original) controller
-	// Plant state
-	xp := xp0
-	// Controller state
-	xc := x0
-	// To save data
+	// Data storage
 	yUnenc := [][]float64{}
 	uUnenc := [][]float64{}
 	xpUnenc := [][]float64{}
 	xcUnenc := [][]float64{}
-	xpUnenc = utils.AppendVecToMat(xpUnenc, xp0)
-	xcUnenc = utils.AppendVecToMat(xcUnenc, x0)
 
-	for i := 0; i < nsim; i++ {
-		y := utils.MatMatMult(C, xp)
-		u := utils.MatMatMult(H, xc)
-		xp = utils.MatAdd(utils.MatMatMult(A, xp), utils.MatMatMult(B, u))
-		xc = utils.MatAdd(utils.MatMatMult(F, xc), utils.MatMatMult(G, y))
+	xpUnenc = append(xpUnenc, xp0)
+	xcUnenc = append(xcUnenc, xc0)
 
-		yUnenc = utils.AppendVecToMat(yUnenc, y)
-		uUnenc = utils.AppendVecToMat(uUnenc, u)
-		xpUnenc = utils.AppendVecToMat(xpUnenc, xp)
-		xcUnenc = utils.AppendVecToMat(xcUnenc, xc)
+	// Plant state
+	xp := xp0
+	// Controller state
+	xc := xc0
+
+	for i := 0; i < iter; i++ {
+		y := utils.MatVecMult(C, xp)
+		u := utils.MatVecMult(H, xc)
+		xp = utils.VecAdd(utils.MatVecMult(A, xp), utils.MatVecMult(B, u))
+		xc = utils.VecAdd(utils.MatVecMult(F, xc), utils.MatVecMult(G, y))
+
+		yUnenc = append(yUnenc, y)
+		uUnenc = append(uUnenc, u)
+		xpUnenc = append(xpUnenc, xp)
+		xcUnenc = append(xcUnenc, xc)
 	}
 
 	// 2) Plant + encrypted controller
-	// Plant state
-	XP := xp0
-
 	// Plant input
-	U := make([][]float64, nu)
+	U := make([]float64, nu)
 	// Unpacked and re-scaled u at actuator
 	Uact := make([]uint64, params.N())
 	// u after inner sum
@@ -258,26 +256,29 @@ func main() {
 	yEnc := [][]float64{}
 	uEnc := [][]float64{}
 	xpEnc := [][]float64{}
-	xpEnc = utils.AppendVecToMat(xpEnc, xp0)
+	xpEnc = append(xpEnc, xp0)
+
+	// Plant state
+	xp = xp0
 
 	// For time check
-	period := make([][]float64, nsim)
-	startPeriod := make([]time.Time, nsim)
+	period := make([][]float64, iter)
+	startPeriod := make([]time.Time, iter)
 
-	for i := 0; i < nsim; i++ {
+	for i := 0; i < iter; i++ {
+		// **** Sensor ****
 		// Plant output
-		Y := utils.MatMatMult(C, XP) // [][]float64
+		Y := utils.MatVecMult(C, xp) // [][]float64
 
 		startPeriod[i] = time.Now()
 
-		// Sensor
 		// Quantize and duplicate
-		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(utils.MatToVec(Y), nu, h))), params.PlaintextModulus())
+		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(Y, nu, h))), params.PlaintextModulus())
 		Ypacked := bgv.NewPlaintext(params, params.MaxLevel())
 		encoder.Encode(Ysens, Ypacked)
 		Ycin, _ := encryptor.EncryptNew(Ypacked)
 
-		// Encrypted controller
+		// **** Encrypted controller ****
 		Uout, _ := eval.MulNew(ctHy[0], ctY[0])
 		eval.MulThenAdd(ctHu[0], ctU[0], Uout)
 		for j := 1; j < nx; j++ {
@@ -285,38 +286,40 @@ func main() {
 			eval.MulThenAdd(ctHu[j], ctU[j], Uout)
 		}
 
-		// Actuator
+		// **** Actuator ****
 		encoder.Decode(decryptor.DecryptNew(Uout), Uact)
 		// Generate plant input
 		for k := 0; k < nu; k++ {
 			Usum[k] = utils.VecSumUint(Uact[k*h:(k+1)*h], params.PlaintextModulus(), bredparams)
-			U[k] = []float64{L * s * utils.SignFloat(float64(Usum[k]), params.PlaintextModulus())}
+			U[k] = float64(L * s * utils.SignFloat(float64(Usum[k]), params.PlaintextModulus()))
 		}
 		// Re-encryption
 		Upacked := bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(utils.MatToVec(U), nu, h))), params.PlaintextModulus()), Upacked)
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(U, nu, h))), params.PlaintextModulus()), Upacked)
 		Ucin, _ := encryptor.EncryptNew(Upacked)
 
-		// Controller state update
+		// **** Encrypted Controller ****
+		// State update
 		ctY = append(ctY[1:], Ycin)
 		ctU = append(ctU[1:], Ucin)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 
-		// Plant state update
-		XP = utils.MatAdd(utils.MatMatMult(A, XP), utils.MatMatMult(B, U))
+		// **** Plant ****
+		// State update
+		xp = utils.VecAdd(utils.MatVecMult(A, xp), utils.MatVecMult(B, U))
 
 		// Save data
-		yEnc = utils.AppendVecToMat(yEnc, Y)
-		uEnc = utils.AppendVecToMat(uEnc, U)
-		xpEnc = utils.AppendVecToMat(xpEnc, XP)
+		yEnc = append(yEnc, Y)
+		uEnc = append(uEnc, U)
+		xpEnc = append(xpEnc, xp)
 	}
 
 	avgPeriod := utils.Average(utils.MatToVec(period))
 	fmt.Println("Average elapsed time for a control period:", avgPeriod, "ms")
 
 	// Compare plant input between 1) and 2)
-	uDiff := make([][]float64, nsim)
+	uDiff := make([][]float64, iter)
 	for i := range uDiff {
 		uDiff[i] = []float64{utils.Vec2Norm(utils.VecSub(uUnenc[i], uEnc[i]))}
 	}
@@ -324,42 +327,18 @@ func main() {
 	// =========== Export data ===========
 
 	// Plant state equipped with encrypted controller
-	file1, err := os.Create("./state.csv")
-	if err != nil {
-		panic(err)
-	}
-	wr1 := csv.NewWriter(bufio.NewWriter(file1))
-	wr1.WriteAll(utils.MatToString(xpEnc))
+	utils.DataExport(xpEnc, "./state.csv")
 
 	// Plant intput from encrypted controller
-	file2, err := os.Create("./uEnc.csv")
-	if err != nil {
-		panic(err)
-	}
-	wr2 := csv.NewWriter(bufio.NewWriter(file2))
-	wr2.WriteAll(utils.MatToString(uEnc))
+	utils.DataExport(uEnc, "./uEnc.csv")
 
 	// Plant output with encrypted controller
-	file3, err := os.Create("./yEnc.csv")
-	if err != nil {
-		panic(err)
-	}
-	wr3 := csv.NewWriter(bufio.NewWriter(file3))
-	wr3.WriteAll(utils.MatToString(yEnc))
+	utils.DataExport(yEnc, "./yEnc.csv")
 
 	// Performance of encrypted controller
-	file4, err := os.Create("./uDiff.csv")
-	if err != nil {
-		panic(err)
-	}
-	wr4 := csv.NewWriter(bufio.NewWriter(file4))
-	wr4.WriteAll(utils.MatToString(uDiff))
+	utils.DataExport(uDiff, "./uDiff.csv")
 
 	// Elapsed time
-	file5, err := os.Create("./period.csv")
-	if err != nil {
-		panic(err)
-	}
-	wr5 := csv.NewWriter(bufio.NewWriter(file5))
-	wr5.WriteAll(utils.MatToString(period))
+	utils.DataExport(period, "./period.csv")
+
 }
