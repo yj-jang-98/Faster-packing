@@ -91,6 +91,7 @@ func main() {
 	// dimensions
 	n := len(F)
 	m := len(H)
+	p := len(G[0])
 
 	// ============== Quantization parameters ==============
 	s := 1 / 10000.0
@@ -108,7 +109,8 @@ func main() {
 
 	// Compute tau
 	// least power of two greater than n, p_, and m
-	tau := 4
+	maxDim := math.Max(math.Max(float64(n), float64(m)), float64(p))
+	tau := int(math.Pow(2, math.Ceil(math.Log2(maxDim))))
 
 	// Generate DFS index
 	dfsId := make([]int, tau)
