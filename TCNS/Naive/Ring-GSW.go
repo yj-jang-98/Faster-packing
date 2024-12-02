@@ -119,10 +119,10 @@ func main() {
 	Hbar := utils.ScalarMatMult(1/s, H)
 
 	// Encryption
-	ctF := naive.EncryptRgsw(F, encryptorRGSW, levelQ, levelP, params)
-	ctG := naive.EncryptRgsw(Gbar, encryptorRGSW, levelQ, levelP, params)
-	ctH := naive.EncryptRgsw(Hbar, encryptorRGSW, levelQ, levelP, params)
-	ctR := naive.EncryptRgsw(Rbar, encryptorRGSW, levelQ, levelP, params)
+	ctF := naive.EncRgsw(F, encryptorRGSW, levelQ, levelP, params)
+	ctG := naive.EncRgsw(Gbar, encryptorRGSW, levelQ, levelP, params)
+	ctH := naive.EncRgsw(Hbar, encryptorRGSW, levelQ, levelP, params)
+	ctR := naive.EncRgsw(Rbar, encryptorRGSW, levelQ, levelP, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
@@ -175,7 +175,7 @@ func main() {
 
 	// Controller state encryption
 	xcScale := utils.ScalarVecMult(1/(r*s), xc0)
-	xcCt := naive.EncryptRlwe(xcScale, 1/L, *encryptorRLWE, params)
+	xcCt := naive.EncRlwe(xcScale, 1/L, *encryptorRLWE, params)
 
 	// For time check
 	period := make([][]float64, iter)
@@ -190,26 +190,26 @@ func main() {
 
 		// Quantize and encrypt plant output
 		yRound := utils.RoundVec(utils.ScalarVecMult(1/r, y))
-		yCt := naive.EncryptRlwe(yRound, 1/L, *encryptorRLWE, params)
+		yCt := naive.EncRlwe(yRound, 1/L, *encryptorRLWE, params)
 
 		// **** Encrypted Controller ****
 		// Compute output
-		uCt := naive.ExternalProduct(xcCt, ctH, evaluator, ringQ, params)
+		uCt := naive.Mult(xcCt, ctH, evaluator, ringQ, params)
 
 		// **** Actuator ****
 		// Decrypt output
-		u := naive.DecryptRlwe(uCt, *decryptorRLWE, r*s*s*L, params)
+		u := naive.Dec(uCt, *decryptorRLWE, r*s*s*L, params)
 
 		// Re-encrypt output
-		uReEnc := naive.EncryptRlwe(u, 1/(r*L), *encryptorRLWE, params)
+		uReEnc := naive.EncRlwe(u, 1/(r*L), *encryptorRLWE, params)
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := naive.ExternalProduct(xcCt, ctF, evaluator, ringQ, params)
-		GyCt := naive.ExternalProduct(yCt, ctG, evaluator, ringQ, params)
-		RuCt := naive.ExternalProduct(uReEnc, ctR, evaluator, ringQ, params)
-		xcCt = naive.CtVecAdd(FxCt, GyCt, params)
-		xcCt = naive.CtVecAdd(xcCt, RuCt, params)
+		FxCt := naive.Mult(xcCt, ctF, evaluator, ringQ, params)
+		GyCt := naive.Mult(yCt, ctG, evaluator, ringQ, params)
+		RuCt := naive.Mult(uReEnc, ctR, evaluator, ringQ, params)
+		xcCt = naive.Add(FxCt, GyCt, params)
+		xcCt = naive.Add(xcCt, RuCt, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 

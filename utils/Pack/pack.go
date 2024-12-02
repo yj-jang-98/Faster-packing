@@ -20,7 +20,7 @@ import (
 // - ctRLWE: n x l RLWE vector
 // Output
 // - ctOut: RLWE ciphertext
-func ExternalProduct(ctRLWE []*rlwe.Ciphertext, ctRGSW []*rgsw.Ciphertext, evaluatorRGSW *rgsw.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
+func Mult(ctRLWE []*rlwe.Ciphertext, ctRGSW []*rgsw.Ciphertext, evaluatorRGSW *rgsw.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
 	row := len(ctRGSW)
 	ctOut := rlwe.NewCiphertext(params, ctRLWE[0].Degree(), ctRLWE[0].Level())
 	tmpCt := rlwe.NewCiphertext(params, ctRLWE[0].Degree(), ctRLWE[0].Level())
@@ -97,7 +97,7 @@ func UnpackCt(ctRLWE *rlwe.Ciphertext, n int, tau int, evaluatorRLWE *rlwe.Evalu
 // - v: n x 1 float vector
 // Output
 // - ctOut: n x l RLWE vector
-func EncryptRlwe(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.Ring, params rlwe.Parameters) []*rlwe.Ciphertext {
+func EncRlwe(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.Ring, params rlwe.Parameters) []*rlwe.Ciphertext {
 	var err error
 
 	row := len(v)
@@ -124,7 +124,7 @@ func EncryptRlwe(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ
 // Output
 // - ctOut: n x 1 RGSW vector
 // * ctOut[i] = RGSW encryption of i-th column of M
-func EncryptRgsw(M [][]float64, tau int, encryptorRGSW *rgsw.Encryptor, levelQ int, levelP int, ringQ *ring.Ring, params rlwe.Parameters) []*rgsw.Ciphertext {
+func EncRgsw(M [][]float64, tau int, encryptorRGSW *rgsw.Encryptor, levelQ int, levelP int, ringQ *ring.Ring, params rlwe.Parameters) []*rgsw.Ciphertext {
 	row := len(M)
 	col := len(M[0])
 	modM := utils.ModMatFloat(M, params.Q()[0])
@@ -150,7 +150,7 @@ func EncryptRgsw(M [][]float64, tau int, encryptorRGSW *rgsw.Encryptor, levelQ i
 // - ctRLWE: n x 1 RLWE vector
 // Output
 // - valOut: n x 1 float vector
-func DecryptRlwe(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale float64, ringQ *ring.Ring, params rlwe.Parameters) []float64 {
+func Dec(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale float64, ringQ *ring.Ring, params rlwe.Parameters) []float64 {
 	row := len(ctRLWE)
 	q := float64(params.Q()[0])
 	offset := uint64(q / (scale * 2.0))
@@ -178,7 +178,7 @@ func DecryptRlwe(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale 
 // - ctRLWE2: RLWE ciphertext
 // Output
 // - ctOut: RLWE ciphertext
-func CtAdd(ctRLWE1 *rlwe.Ciphertext, ctRLWE2 *rlwe.Ciphertext, params rlwe.Parameters) *rlwe.Ciphertext {
+func Add(ctRLWE1 *rlwe.Ciphertext, ctRLWE2 *rlwe.Ciphertext, params rlwe.Parameters) *rlwe.Ciphertext {
 	ctOut := rlwe.NewCiphertext(params, ctRLWE2.Degree(), ctRLWE2.Level())
 
 	params.RingQ().Add(ctRLWE1.Value[0], ctRLWE2.Value[0], ctOut.Value[0])

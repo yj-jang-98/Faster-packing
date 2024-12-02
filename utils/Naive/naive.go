@@ -15,7 +15,7 @@ import (
 // - ctRLWE: n x l RLWE vector
 // Output
 // - ctOut: m x l RLWE vector
-func ExternalProduct(ctRLWE []*rlwe.Ciphertext, ctRGSW [][]*rgsw.Ciphertext, evaluator *rgsw.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) []*rlwe.Ciphertext {
+func Mult(ctRLWE []*rlwe.Ciphertext, ctRGSW [][]*rgsw.Ciphertext, evaluator *rgsw.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) []*rlwe.Ciphertext {
 	row := len(ctRGSW)
 	col := len(ctRGSW[0])
 	ctOut := make([]*rlwe.Ciphertext, row)
@@ -36,7 +36,7 @@ func ExternalProduct(ctRLWE []*rlwe.Ciphertext, ctRGSW [][]*rgsw.Ciphertext, eva
 // - v: n x 1 float vector
 // Output
 // - ctOut: n x l RLWE vector
-func EncryptRlwe(v []float64, scale float64, encryptor rlwe.Encryptor, params rlwe.Parameters) []*rlwe.Ciphertext {
+func EncRlwe(v []float64, scale float64, encryptor rlwe.Encryptor, params rlwe.Parameters) []*rlwe.Ciphertext {
 	var err error
 
 	row := len(v)
@@ -63,7 +63,7 @@ func EncryptRlwe(v []float64, scale float64, encryptor rlwe.Encryptor, params rl
 // - M: m x n float matrix
 // Output
 // - ctOut: m x n RGSW matrix
-func EncryptRgsw(M [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP int, params rlwe.Parameters) [][]*rgsw.Ciphertext {
+func EncRgsw(M [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP int, params rlwe.Parameters) [][]*rgsw.Ciphertext {
 	row := len(M)
 	col := len(M[0])
 	modM := utils.ModMatFloat(M, params.Q()[0])
@@ -90,7 +90,7 @@ func EncryptRgsw(M [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP in
 // - ctRLWE: n x 1 RLWE vector
 // Output
 // - valOut: n x 1 float vector
-func DecryptRlwe(ctRLWE []*rlwe.Ciphertext, decryptor rlwe.Decryptor, scale float64, params rlwe.Parameters) []float64 {
+func Dec(ctRLWE []*rlwe.Ciphertext, decryptor rlwe.Decryptor, scale float64, params rlwe.Parameters) []float64 {
 	row := len(ctRLWE)
 	q := float64(params.Q()[0])
 	valOut := make([]float64, row)
@@ -115,7 +115,7 @@ func DecryptRlwe(ctRLWE []*rlwe.Ciphertext, decryptor rlwe.Decryptor, scale floa
 // - ctRLWE2: n x 1 RLWE vector
 // Output
 // - ctOut: n x 1 RLWE vector
-func CtVecAdd(ctRLWE1 []*rlwe.Ciphertext, ctRLWE2 []*rlwe.Ciphertext, params rlwe.Parameters) []*rlwe.Ciphertext {
+func Add(ctRLWE1 []*rlwe.Ciphertext, ctRLWE2 []*rlwe.Ciphertext, params rlwe.Parameters) []*rlwe.Ciphertext {
 	row := len(ctRLWE1)
 	ctOut := make([]*rlwe.Ciphertext, row)
 	for r := 0; r < row; r++ {

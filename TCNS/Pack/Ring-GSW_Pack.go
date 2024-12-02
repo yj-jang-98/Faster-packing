@@ -176,10 +176,10 @@ func main() {
 
 	// Encryption
 	// Dimension: 1-by-(# of columns)
-	ctF := pack.EncryptRgsw(F, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctG := pack.EncryptRgsw(Gbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctH := pack.EncryptRgsw(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctR := pack.EncryptRgsw(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctF := pack.EncRgsw(F, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctG := pack.EncRgsw(Gbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctH := pack.EncRgsw(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctR := pack.EncRgsw(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
@@ -232,7 +232,7 @@ func main() {
 
 	// Dimension: 1-by-(# of elements)
 	xcScale := utils.ScalarVecMult(1/(r*s), xc0)
-	xcCt := pack.EncryptRlwe(xcScale, 1/L, *encryptorRLWE, ringQ, params)
+	xcCt := pack.EncRlwe(xcScale, 1/L, *encryptorRLWE, ringQ, params)
 	xcCtPack := rlwe.NewCiphertext(params, xcCt[0].Degree(), xcCt[0].Level())
 
 	// For time check
@@ -248,27 +248,27 @@ func main() {
 
 		// Quantize - encrypt
 		yRound := utils.RoundVec(utils.ScalarVecMult(1/r, y))
-		yCt := pack.EncryptRlwe(yRound, 1/L, *encryptorRLWE, ringQ, params)
+		yCt := pack.EncRlwe(yRound, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// Comput output
-		uCt := pack.ExternalProduct(xcCt, ctH, evaluatorRGSW, ringQ, params)
+		uCt := pack.Mult(xcCt, ctH, evaluatorRGSW, ringQ, params)
 
 		// **** Actuator ****
 		// Unpack - decrypt
 		uCtUnpack := pack.UnpackCt(uCt, m, tau, evaluatorRLWE, ringQ, monomials, params)
-		u := pack.DecryptRlwe(uCtUnpack, *decryptorRLWE, r*s*s*L, ringQ, params)
+		u := pack.Dec(uCtUnpack, *decryptorRLWE, r*s*s*L, ringQ, params)
 
 		// Re-encrypt output
-		uReEnc := pack.EncryptRlwe(u, 1/(r*L), *encryptorRLWE, ringQ, params)
+		uReEnc := pack.EncRlwe(u, 1/(r*L), *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := pack.ExternalProduct(xcCt, ctF, evaluatorRGSW, ringQ, params)
-		GyCt := pack.ExternalProduct(yCt, ctG, evaluatorRGSW, ringQ, params)
-		RuCt := pack.ExternalProduct(uReEnc, ctR, evaluatorRGSW, ringQ, params)
-		xcCtPack = pack.CtAdd(FxCt, GyCt, params)
-		xcCtPack = pack.CtAdd(xcCtPack, RuCt, params)
+		FxCt := pack.Mult(xcCt, ctF, evaluatorRGSW, ringQ, params)
+		GyCt := pack.Mult(yCt, ctG, evaluatorRGSW, ringQ, params)
+		RuCt := pack.Mult(uReEnc, ctR, evaluatorRGSW, ringQ, params)
+		xcCtPack = pack.Add(FxCt, GyCt, params)
+		xcCtPack = pack.Add(xcCtPack, RuCt, params)
 		xcCt = pack.UnpackCt(xcCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
