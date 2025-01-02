@@ -5,7 +5,8 @@ import (
 	"time"
 
 	utils "github.com/CDSL-EncryptedControl/2024SICE/utils"
-	naive "github.com/CDSL-EncryptedControl/2024SICE/utils/Naive"
+	RGSW "github.com/CDSL-EncryptedControl/2024SICE/utils/core/RGSW"
+	RLWE "github.com/CDSL-EncryptedControl/2024SICE/utils/core/RLWE"
 	"github.com/tuneinsight/lattigo/v6/core/rgsw"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 )
@@ -119,14 +120,14 @@ func main() {
 	Hbar := utils.ScalarMatMult(1/s, H)
 
 	// Encryption
-	ctF := naive.EncRgsw(F, encryptorRGSW, levelQ, levelP, params)
-	ctG := naive.EncRgsw(Gbar, encryptorRGSW, levelQ, levelP, params)
-	ctH := naive.EncRgsw(Hbar, encryptorRGSW, levelQ, levelP, params)
-	ctR := naive.EncRgsw(Rbar, encryptorRGSW, levelQ, levelP, params)
+	ctF := RGSW.Enc(F, encryptorRGSW, levelQ, levelP, params)
+	ctG := RGSW.Enc(Gbar, encryptorRGSW, levelQ, levelP, params)
+	ctH := RGSW.Enc(Hbar, encryptorRGSW, levelQ, levelP, params)
+	ctR := RGSW.Enc(Rbar, encryptorRGSW, levelQ, levelP, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
-	iter := 1000
+	iter := 2000
 	fmt.Printf("Number of iterations: %v", iter)
 
 	// *****************
@@ -175,7 +176,7 @@ func main() {
 
 	// Controller state encryption
 	xcScale := utils.ScalarVecMult(1/(r*s), xc0)
-	xcCt := naive.EncRlwe(xcScale, 1/L, *encryptorRLWE, params)
+	xcCt := RLWE.Enc(xcScale, 1/L, *encryptorRLWE, ringQ, params)
 
 	// For time check
 	period := make([][]float64, iter)
@@ -190,26 +191,26 @@ func main() {
 
 		// Quantize and encrypt plant output
 		yRound := utils.RoundVec(utils.ScalarVecMult(1/r, y))
-		yCt := naive.EncRlwe(yRound, 1/L, *encryptorRLWE, params)
+		yCt := RLWE.Enc(yRound, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// Compute output
-		uCt := naive.Mult(xcCt, ctH, evaluator, ringQ, params)
+		uCt := RGSW.Mult(xcCt, ctH, evaluator, ringQ, params)
 
 		// **** Actuator ****
 		// Decrypt output
-		u := naive.Dec(uCt, *decryptorRLWE, r*s*s*L, params)
+		u := RLWE.Dec(uCt, *decryptorRLWE, r*s*s*L, ringQ, params)
 
 		// Re-encrypt output
-		uReEnc := naive.EncRlwe(u, 1/(r*L), *encryptorRLWE, params)
+		uReEnc := RLWE.Enc(u, 1/(r*L), *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := naive.Mult(xcCt, ctF, evaluator, ringQ, params)
-		GyCt := naive.Mult(yCt, ctG, evaluator, ringQ, params)
-		RuCt := naive.Mult(uReEnc, ctR, evaluator, ringQ, params)
-		xcCt = naive.Add(FxCt, GyCt, params)
-		xcCt = naive.Add(xcCt, RuCt, params)
+		FxCt := RGSW.Mult(xcCt, ctF, evaluator, ringQ, params)
+		GyCt := RGSW.Mult(yCt, ctG, evaluator, ringQ, params)
+		RuCt := RGSW.Mult(uReEnc, ctR, evaluator, ringQ, params)
+		xcCt = RLWE.AddVec(FxCt, GyCt, params)
+		xcCt = RLWE.AddVec(xcCt, RuCt, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 

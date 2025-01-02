@@ -1,37 +1,12 @@
-package pack
+package RLWE
 
 import (
 	"math"
 
 	"github.com/CDSL-EncryptedControl/2024SICE/utils"
-	"github.com/tuneinsight/lattigo/v6/core/rgsw"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
 )
-
-// Computes external product with PACKING
-// A x b = c
-// ctRGSW[i] : RGSW encryption of i-th column of A
-// ctRLWE[i] : RLWE encryption of i-th component of b
-// ctOut     : RLWE encryption of Pack(c)
-//
-// Input
-// - ctRGSW: n x 1 RGSW vector
-// - ctRLWE: n x l RLWE vector
-// Output
-// - ctOut: RLWE ciphertext
-func Mult(ctRLWE []*rlwe.Ciphertext, ctRGSW []*rgsw.Ciphertext, evaluatorRGSW *rgsw.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
-	row := len(ctRGSW)
-	ctOut := rlwe.NewCiphertext(params, ctRLWE[0].Degree(), ctRLWE[0].Level())
-	tmpCt := rlwe.NewCiphertext(params, ctRLWE[0].Degree(), ctRLWE[0].Level())
-	for r := 0; r < row; r++ {
-		evaluatorRGSW.ExternalProduct(ctRLWE[r], ctRGSW[r], tmpCt)
-		ringQ.Add(ctOut.Value[0], tmpCt.Value[0], ctOut.Value[0])
-		ringQ.Add(ctOut.Value[1], tmpCt.Value[1], ctOut.Value[1])
-	}
-
-	return ctOut
-}
 
 // Unpack RLWE ciphertext
 // Input
@@ -97,7 +72,7 @@ func UnpackCt(ctRLWE *rlwe.Ciphertext, n int, tau int, evaluatorRLWE *rlwe.Evalu
 // - v: n x 1 float vector
 // Output
 // - ctOut: n x l RLWE vector
-func EncRlwe(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.Ring, params rlwe.Parameters) []*rlwe.Ciphertext {
+func Enc(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.Ring, params rlwe.Parameters) []*rlwe.Ciphertext {
 	var err error
 
 	row := len(v)
@@ -115,31 +90,6 @@ func EncRlwe(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ri
 		}
 	}
 
-	return ctOut
-}
-
-// Encrypts float matrix into a RGSW vector by PACKING each column
-// Input
-// - M: m x n float matrix
-// Output
-// - ctOut: n x 1 RGSW vector
-// * ctOut[i] = RGSW encryption of i-th column of M
-func EncRgsw(M [][]float64, tau int, encryptorRGSW *rgsw.Encryptor, levelQ int, levelP int, ringQ *ring.Ring, params rlwe.Parameters) []*rgsw.Ciphertext {
-	row := len(M)
-	col := len(M[0])
-	modM := utils.ModMatFloat(M, params.Q()[0])
-
-	ctOut := make([]*rgsw.Ciphertext, col)
-	for c := 0; c < col; c++ {
-		pt := rlwe.NewPlaintext(params, params.MaxLevel())
-		for j := 0; j < row; j++ {
-			// Store in the packing slots
-			pt.Value.Coeffs[0][params.N()*j/tau] = modM[j][c]
-		}
-		ringQ.NTT(pt.Value, pt.Value)
-		ctOut[c] = rgsw.NewCiphertext(params, levelQ, levelP, 0)
-		encryptorRGSW.Encrypt(pt, ctOut[c])
-	}
 	return ctOut
 }
 
@@ -170,6 +120,24 @@ func Dec(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale float64,
 		valOut[r] = val * scale
 	}
 	return valOut
+}
+
+// Add RLWE vectors
+// Input
+// - ctRLWE1: n x 1 RLWE vector
+// - ctRLWE2: n x 1 RLWE vector
+// Output
+// - ctOut: n x 1 RLWE vector
+func AddVec(ctRLWE1 []*rlwe.Ciphertext, ctRLWE2 []*rlwe.Ciphertext, params rlwe.Parameters) []*rlwe.Ciphertext {
+	row := len(ctRLWE1)
+	ctOut := make([]*rlwe.Ciphertext, row)
+	for r := 0; r < row; r++ {
+		ctOut[r] = rlwe.NewCiphertext(params, ctRLWE2[0].Degree(), ctRLWE2[0].Level())
+		params.RingQ().Add(ctRLWE1[r].Value[0], ctRLWE2[r].Value[0], ctOut[r].Value[0])
+		params.RingQ().Add(ctRLWE1[r].Value[1], ctRLWE2[r].Value[1], ctOut[r].Value[1])
+	}
+
+	return ctOut
 }
 
 // Add RLWE ciphertexts

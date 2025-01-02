@@ -7,7 +7,8 @@ import (
 	"time"
 
 	utils "github.com/CDSL-EncryptedControl/2024SICE/utils"
-	pack "github.com/CDSL-EncryptedControl/2024SICE/utils/Pack"
+	RGSW "github.com/CDSL-EncryptedControl/2024SICE/utils/core/RGSW"
+	RLWE "github.com/CDSL-EncryptedControl/2024SICE/utils/core/RLWE"
 	"github.com/tuneinsight/lattigo/v6/core/rgsw"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
@@ -176,10 +177,10 @@ func main() {
 
 	// Encryption
 	// Dimension: 1-by-(# of columns)
-	ctF := pack.EncRgsw(F, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctG := pack.EncRgsw(Gbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctH := pack.EncRgsw(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctR := pack.EncRgsw(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctF := RGSW.EncPack(F, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctG := RGSW.EncPack(Gbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctH := RGSW.EncPack(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctR := RGSW.EncPack(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
@@ -232,7 +233,7 @@ func main() {
 
 	// Dimension: 1-by-(# of elements)
 	xcScale := utils.ScalarVecMult(1/(r*s), xc0)
-	xcCt := pack.EncRlwe(xcScale, 1/L, *encryptorRLWE, ringQ, params)
+	xcCt := RLWE.Enc(xcScale, 1/L, *encryptorRLWE, ringQ, params)
 	xcCtPack := rlwe.NewCiphertext(params, xcCt[0].Degree(), xcCt[0].Level())
 
 	// For time check
@@ -248,28 +249,28 @@ func main() {
 
 		// Quantize - encrypt
 		yRound := utils.RoundVec(utils.ScalarVecMult(1/r, y))
-		yCt := pack.EncRlwe(yRound, 1/L, *encryptorRLWE, ringQ, params)
+		yCt := RLWE.Enc(yRound, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// Comput output
-		uCt := pack.Mult(xcCt, ctH, evaluatorRGSW, ringQ, params)
+		uCt := RGSW.MultPack(xcCt, ctH, evaluatorRGSW, ringQ, params)
 
 		// **** Actuator ****
 		// Unpack - decrypt
-		uCtUnpack := pack.UnpackCt(uCt, m, tau, evaluatorRLWE, ringQ, monomials, params)
-		u := pack.Dec(uCtUnpack, *decryptorRLWE, r*s*s*L, ringQ, params)
+		uCtUnpack := RLWE.UnpackCt(uCt, m, tau, evaluatorRLWE, ringQ, monomials, params)
+		u := RLWE.Dec(uCtUnpack, *decryptorRLWE, r*s*s*L, ringQ, params)
 
 		// Re-encrypt output
-		uReEnc := pack.EncRlwe(u, 1/(r*L), *encryptorRLWE, ringQ, params)
+		uReEnc := RLWE.Enc(u, 1/(r*L), *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := pack.Mult(xcCt, ctF, evaluatorRGSW, ringQ, params)
-		GyCt := pack.Mult(yCt, ctG, evaluatorRGSW, ringQ, params)
-		RuCt := pack.Mult(uReEnc, ctR, evaluatorRGSW, ringQ, params)
-		xcCtPack = pack.Add(FxCt, GyCt, params)
-		xcCtPack = pack.Add(xcCtPack, RuCt, params)
-		xcCt = pack.UnpackCt(xcCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
+		FxCt := RGSW.MultPack(xcCt, ctF, evaluatorRGSW, ringQ, params)
+		GyCt := RGSW.MultPack(yCt, ctG, evaluatorRGSW, ringQ, params)
+		RuCt := RGSW.MultPack(uReEnc, ctR, evaluatorRGSW, ringQ, params)
+		xcCtPack = RLWE.Add(FxCt, GyCt, params)
+		xcCtPack = RLWE.Add(xcCtPack, RuCt, params)
+		xcCt = RLWE.UnpackCt(xcCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 
