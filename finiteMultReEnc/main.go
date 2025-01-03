@@ -105,9 +105,9 @@ func main() {
 	}
 
 	// ============== Quantization parameters ==============
-	L := 0.00050
+	r := 0.00050
 	s := 0.00010
-	fmt.Println("Scaling parameters 1/L:", 1/L, "1/s:", 1/s)
+	fmt.Println("Scaling parameters 1/r:", 1/r, "1/s:", 1/s)
 	// *****************************************************************
 	// *****************************************************************
 
@@ -172,11 +172,11 @@ func main() {
 	// Quantization - packing - encryption
 	for i := 0; i < nx; i++ {
 		ptY[i] = bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, yy0vec[i])), params.PlaintextModulus()), ptY[i])
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/r, yy0vec[i])), params.PlaintextModulus()), ptY[i])
 		ctY[i], _ = encryptor.EncryptNew(ptY[i])
 
 		ptU[i] = bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, uu0vec[i])), params.PlaintextModulus()), ptU[i])
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/r, uu0vec[i])), params.PlaintextModulus()), ptU[i])
 		ctU[i], _ = encryptor.EncryptNew(ptU[i])
 
 		ptHy[i] = bgv.NewPlaintext(params, params.MaxLevel())
@@ -243,7 +243,7 @@ func main() {
 		startPeriod[i] = time.Now()
 
 		// Quantize and duplicate
-		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(Y, nu, h))), params.PlaintextModulus())
+		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/r, utils.VecDuplicate(Y, nu, h))), params.PlaintextModulus())
 		Ypacked := bgv.NewPlaintext(params, params.MaxLevel())
 		encoder.Encode(Ysens, Ypacked)
 		Ycin, _ := encryptor.EncryptNew(Ypacked)
@@ -267,11 +267,11 @@ func main() {
 		// Generate plant input
 		for k := 0; k < nu; k++ {
 			Usum[k] = utils.VecSumUint(Uact[k*h:(k+1)*h], params.PlaintextModulus(), bredparams)
-			U[k] = float64(L * s * utils.SignFloat(float64(Usum[k]), params.PlaintextModulus()))
+			U[k] = float64(r * s * utils.SignFloat(float64(Usum[k]), params.PlaintextModulus()))
 		}
 		// Re-encryption
 		Upacked := bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/L, utils.VecDuplicate(U, nu, h))), params.PlaintextModulus()), Upacked)
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalarVecMult(1/r, utils.VecDuplicate(U, nu, h))), params.PlaintextModulus()), Upacked)
 		Ucin, _ := encryptor.EncryptNew(Upacked)
 
 		// **** Encrypted Controller ****
