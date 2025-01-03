@@ -68,9 +68,8 @@ func main() {
 		{-0.155195618091332, -0.787363838187106, -0.342684291254742, 0.313672395293020},
 	}
 
-	// input-output representation (obtained by MATLAB)
-	// u(k) = Hy[5]*y(k-1) + ... + Hy[1]*y(k-5) + Hu[5]*u(k-1) + ... + Hu[1]*u(k-5)
-	// already vectorized
+	// input-output representation of controller obtained by conversion.m
+	// transpose of vecHu, vecHy from conversion.m
 	Hy := [][]float64{
 		{0.334883269997112, -0.0993726952581632, 0.109105860257554, 0.340141173304891},
 		{0.340715074862138, -0.101693452659005, 0.111263681570879, 0.346096102431116},
@@ -90,14 +89,14 @@ func main() {
 		-1,
 		0.900000000000000,
 	}
-	// initial [y(-n); ...; y(-1)] (obtained by MATLAB)
+	// transpose of Yini from conversion.m
 	yy0 := [][]float64{
 		{-168.915339084001, 152.553129120773},
 		{0, 0},
 		{0, 0},
 		{37.1009230518511, -33.8787596718866},
 	}
-	// initial [u(-n); ...; u(-1)] (obtained by MATLAB)
+	// transpose of Uini from conversion.m
 	uu0 := [][]float64{
 		{0, 0},
 		{151.077820919228, -70.2395320362580},
