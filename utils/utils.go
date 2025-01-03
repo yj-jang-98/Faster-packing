@@ -217,14 +217,14 @@ func ModVecFloat(v []float64, q uint64) []uint64 {
 	return vOut
 }
 
-// ?????????
+
 // Duplicate + zero padding
 // length h vector n times
 // Length of a must be less than or equal to h
 // Input
-// - v : n x 1 float vector
+// - v : float vector
 // Output
-// - v: n x 1 float vector ???
+// - v: nh x 1 float vector
 func VecDuplicate(v []float64, n int, h int) []float64 {
 	row := len(v)
 	if row > h {
