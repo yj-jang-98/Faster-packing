@@ -215,7 +215,6 @@ func main() {
 		xp = utils.VecAdd(utils.MatVecMult(A, xp), utils.MatVecMult(B, u))
 		xc = utils.VecAdd(utils.MatVecMult(F, xc), utils.MatVecMult(G, y))
 
-		fmt.Println(u)
 		yUnenc = append(yUnenc, y)
 		uUnenc = append(uUnenc, u)
 		xpUnenc = append(xpUnenc, xp)
