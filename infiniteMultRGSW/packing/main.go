@@ -34,11 +34,11 @@ func main() {
 	fmt.Println("Ciphertext modulus:", params.PBigInt())
 	// Default secret key distribution
 	// Each coefficient in the polynomial is uniformly sampled in [-1, 0, 1]
-	fmt.Println("Secret key distribution:", params.Xs())
+	fmt.Println("Secret key distribution (Ternary):", params.Xs())
 	// Default error distribution
 	// Each coefficient in the polynomial is sampled according to a
 	// discrete Gaussian distribution with standard deviation 3.2 and bound 19.2
-	fmt.Println("Error distribution:", params.Xe())
+	fmt.Println("Error distribution (Discrete Gaussian):", params.Xe())
 
 	// ============== Plant model ==============
 	A := [][]float64{
@@ -263,9 +263,8 @@ func main() {
 		uCt := RGSW.MultPack(xcCt, ctH, evaluatorRGSW, ringQ, params)
 
 		// **** Actuator ****
-		// Unpack - decrypt
-		uCtUnpack := RLWE.UnpackCt(uCt, m, tau, evaluatorRLWE, ringQ, monomials, params)
-		u := RLWE.Dec(uCtUnpack, *decryptorRLWE, r*s*s*L, ringQ, params)
+		// Decrypt and Unapck
+		u := RLWE.DecAndUnpack(uCt, m, tau, *decryptorRLWE, r*s*s*L, ringQ, params)
 
 		// Re-encrypt output
 		uReEnc := RLWE.Enc(u, 1/(r*L), *encryptorRLWE, ringQ, params)

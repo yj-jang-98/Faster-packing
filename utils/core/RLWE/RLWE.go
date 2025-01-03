@@ -122,6 +122,35 @@ func Dec(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale float64,
 	return valOut
 }
 
+// 1) Decrypt RLWE ciphertext
+// 2) Unpack first m slots -> integer vector
+// 3) rescale
+// Input
+// - ctRLWE: RLWE
+// Output
+// - valOut: m x 1 float vector
+func DecAndUnpack(ctRLWE *rlwe.Ciphertext, m int, tau int, decryptorRLWE rlwe.Decryptor, scale float64, ringQ *ring.Ring, params rlwe.Parameters) []float64 {
+	q := float64(params.Q()[0])
+	offset := uint64(q / (scale * 2.0))
+	valOut := make([]float64, m)
+
+	ringQ.AddScalar(ctRLWE.Value[0], offset, ctRLWE.Value[0])
+	pt := decryptorRLWE.DecryptNew(ctRLWE)
+	if pt.IsNTT {
+		params.RingQ().INTT(pt.Value, pt.Value)
+	}
+	ringQ.SubScalar(ctRLWE.Value[0], offset, ctRLWE.Value[0])
+	// Constant terms
+	for r := 0; r < m; r++ {
+		val := float64(pt.Value.Coeffs[0][params.N()*r/tau])
+		// Mapping to [-q/2, q/2)
+		val = val - math.Floor((val+q/2.0)/q)*q
+		// Scale down
+		valOut[r] = val * scale
+	}
+	return valOut
+}
+
 // Add RLWE vectors
 // Input
 // - ctRLWE1: n x 1 RLWE vector
