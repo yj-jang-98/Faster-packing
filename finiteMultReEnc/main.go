@@ -221,7 +221,6 @@ func main() {
 		xpUnenc = append(xpUnenc, xp)
 		xcUnenc = append(xcUnenc, xc)
 	}
-	fmt.Println(uUnenc)
 
 	// 2) Plant + encrypted controller
 
