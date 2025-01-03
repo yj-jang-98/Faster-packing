@@ -29,6 +29,13 @@ func main() {
 	fmt.Println("Degree of polynomials:", params.N())
 	fmt.Println("Ciphertext modulus:", params.QBigInt())
 	fmt.Println("Ciphertext modulus:", params.PBigInt())
+	// Default secret key distribution
+	// Each coefficient in the polynomial is uniformly sampled in [-1, 0, 1]
+	fmt.Println("Secret key distribution:", params.Xs())
+	// Default error distribution
+	// Each coefficient in the polynomial is sampled according to a
+	// discrete Gaussian distribution with standard deviation 3.2 and bound 19.2
+	fmt.Println("Error distribution:", params.Xe())
 
 	// ============== Plant model ==============
 	A := [][]float64{
