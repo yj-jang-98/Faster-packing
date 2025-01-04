@@ -120,7 +120,7 @@ func main() {
 	maxDim := math.Max(math.Max(float64(n), float64(m)), float64(p))
 	tau := int(math.Pow(2, math.Ceil(math.Log2(maxDim))))
 
-	// Generate DFS index
+	// Generate DFS index for unpack
 	dfsId := make([]int, tau)
 	for i := 0; i < tau; i++ {
 		dfsId[i] = i
@@ -156,7 +156,7 @@ func main() {
 		ringQ.NTT(monomials[i], monomials[i])
 	}
 
-	// Generate Galois elements
+	// Generate Galois elements for unpack
 	galEls := make([]uint64, int(math.Log2(float64(tau))))
 	for i := 0; i < int(math.Log2(float64(tau))); i++ {
 		galEls[i] = uint64(tau/int(math.Pow(2, float64(i))) + 1)
@@ -178,9 +178,9 @@ func main() {
 
 	// ==============  Encryption of controller ==============
 	// Quantization
-	Gbar := utils.ScalarMatMult(1/s, G)
-	Rbar := utils.ScalarMatMult(1/s, R)
-	Hbar := utils.ScalarMatMult(1/s, H)
+	Gbar := utils.ScalMatMult(1/s, G)
+	Hbar := utils.ScalMatMult(1/s, H)
+	Rbar := utils.ScalMatMult(1/s, R)
 
 	// Encryption
 	// Dimension: 1-by-(# of columns)
@@ -239,7 +239,7 @@ func main() {
 	xp = xp0
 
 	// Dimension: 1-by-(# of elements)
-	xcScale := utils.ScalarVecMult(1/(r*s), xc0)
+	xcScale := utils.ScalVecMult(1/(r*s), xc0)
 	xcCt := RLWE.Enc(xcScale, 1/L, *encryptorRLWE, ringQ, params)
 	xcCtPack := rlwe.NewCiphertext(params, xcCt[0].Degree(), xcCt[0].Level())
 
@@ -255,7 +255,7 @@ func main() {
 		startPeriod[i] = time.Now()
 
 		// Quantize - encrypt
-		yRound := utils.RoundVec(utils.ScalarVecMult(1/r, y))
+		yRound := utils.RoundVec(utils.ScalVecMult(1/r, y))
 		yCt := RLWE.Enc(yRound, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****

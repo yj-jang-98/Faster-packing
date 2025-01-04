@@ -76,7 +76,7 @@ func Enc(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.R
 	var err error
 
 	row := len(v)
-	scaleV := utils.ScalarVecMult(scale, v)
+	scaleV := utils.ScalVecMult(scale, v)
 	modV := utils.ModVecFloat(scaleV, params.Q()[0])
 
 	ctOut := make([]*rlwe.Ciphertext, row)

@@ -42,7 +42,7 @@ func Average(v []float64) float64 {
 // - M : m x n float matrix
 // Output
 // - MOut: m x n float matrix
-func ScalarMatMult(s float64, M [][]float64) [][]float64 {
+func ScalMatMult(s float64, M [][]float64) [][]float64 {
 	row := len(M)
 	col := len(M[0])
 	MOut := make([][]float64, row)
@@ -127,7 +127,7 @@ func MatToVec(M [][]float64) []float64 {
 // - M : m x n float matrix
 // Output
 // - strOut : m x n string matrix
-func MatToString(M [][]float64) [][]string {
+func MatToStr(M [][]float64) [][]string {
 	row := len(M)
 	col := len(M[0])
 	strOut := make([][]string, row)
@@ -176,7 +176,7 @@ func VecSub(v1 []float64, v2 []float64) []float64 {
 // - v : m x 1 float vector
 // Output
 // - vOut: m x 1 float vector
-func ScalarVecMult(s float64, v []float64) []float64 {
+func ScalVecMult(s float64, v []float64) []float64 {
 	row := len(v)
 
 	vOut := make([]float64, row)
@@ -216,7 +216,6 @@ func ModVecFloat(v []float64, q uint64) []uint64 {
 	}
 	return vOut
 }
-
 
 // Duplicate + zero padding
 // length h vector n times
@@ -280,7 +279,7 @@ func RoundVec(v []float64) []float64 {
 // - v : n x 1 float vector
 // Output
 // - strOut : n x 1 string matrix
-func VecToString(v []float64) [][]string {
+func VecToStr(v []float64) [][]string {
 	row := len(v)
 	strOut := make([][]string, row)
 	for r := 0; r < row; r++ {
@@ -296,5 +295,5 @@ func DataExport(data [][]float64, fileName string) {
 		panic(err)
 	}
 	wr := csv.NewWriter(bufio.NewWriter(file))
-	wr.WriteAll(MatToString(data))
+	wr.WriteAll(MatToStr(data))
 }

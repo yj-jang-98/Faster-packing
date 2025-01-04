@@ -122,9 +122,9 @@ func main() {
 
 	// ==============  Encryption of controller ==============
 	// Quantization
-	Gbar := utils.ScalarMatMult(1/s, G)
-	Rbar := utils.ScalarMatMult(1/s, R)
-	Hbar := utils.ScalarMatMult(1/s, H)
+	Gbar := utils.ScalMatMult(1/s, G)
+	Rbar := utils.ScalMatMult(1/s, R)
+	Hbar := utils.ScalMatMult(1/s, H)
 
 	// Encryption
 	ctF := RGSW.Enc(F, encryptorRGSW, levelQ, levelP, params)
@@ -182,7 +182,7 @@ func main() {
 	xp = xp0
 
 	// Controller state encryption
-	xcScale := utils.ScalarVecMult(1/(r*s), xc0)
+	xcScale := utils.ScalVecMult(1/(r*s), xc0)
 	xcCt := RLWE.Enc(xcScale, 1/L, *encryptorRLWE, ringQ, params)
 
 	// For time check
@@ -197,7 +197,7 @@ func main() {
 		startPeriod[i] = time.Now()
 
 		// Quantize and encrypt plant output
-		yRound := utils.RoundVec(utils.ScalarVecMult(1/r, y))
+		yRound := utils.RoundVec(utils.ScalVecMult(1/r, y))
 		yCt := RLWE.Enc(yRound, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
