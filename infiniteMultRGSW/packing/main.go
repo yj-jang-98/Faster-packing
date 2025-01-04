@@ -255,8 +255,8 @@ func main() {
 		startPeriod[i] = time.Now()
 
 		// Quantize - encrypt
-		yRound := utils.RoundVec(utils.ScalVecMult(1/r, y))
-		yCt := RLWE.Enc(yRound, 1/L, *encryptorRLWE, ringQ, params)
+		yBar := utils.RoundVec(utils.ScalVecMult(1/r, y))
+		yCt := RLWE.Enc(yBar, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// Comput output
