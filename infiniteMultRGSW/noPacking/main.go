@@ -87,7 +87,7 @@ func main() {
 		{0.1791, 0.2180, -0.2738, 0.0180},
 	}
 	// Controller initial state
-	xc0 := []float64{
+	x0 := []float64{
 		0.5,
 		0.02,
 		-1,
@@ -148,23 +148,23 @@ func main() {
 	xpUnenc := [][]float64{}
 
 	xpUnenc = append(xpUnenc, xp0)
-	xcUnenc = append(xcUnenc, xc0)
+	xcUnenc = append(xcUnenc, x0)
 
 	// Plant state
 	xp := xp0
 	// Controller state
-	xc := xc0
+	x := x0
 
 	for i := 0; i < iter; i++ {
 		y := utils.MatVecMult(C, xp)
-		u := utils.MatVecMult(H, xc)
+		u := utils.MatVecMult(H, x)
 		xp = utils.VecAdd(utils.MatVecMult(A, xp), utils.MatVecMult(B, u))
-		xc = utils.VecAdd(utils.MatVecMult(F, xc), utils.MatVecMult(G, y))
-		xc = utils.VecAdd(xc, utils.MatVecMult(R, u))
+		x = utils.VecAdd(utils.MatVecMult(F, x), utils.MatVecMult(G, y))
+		x = utils.VecAdd(x, utils.MatVecMult(R, u))
 
 		yUnenc = append(yUnenc, y)
 		uUnenc = append(uUnenc, u)
-		xcUnenc = append(xcUnenc, xc)
+		xcUnenc = append(xcUnenc, x)
 		xpUnenc = append(xpUnenc, xp)
 	}
 
@@ -182,8 +182,8 @@ func main() {
 	xp = xp0
 
 	// Controller state encryption
-	xcScale := utils.ScalVecMult(1/(r*s), xc0)
-	xcCt := RLWE.Enc(xcScale, 1/L, *encryptorRLWE, ringQ, params)
+	xScale := utils.ScalVecMult(1/(r*s), x0)
+	xCt := RLWE.Enc(xScale, 1/L, *encryptorRLWE, ringQ, params)
 
 	// For time check
 	period := make([][]float64, iter)
@@ -202,7 +202,7 @@ func main() {
 
 		// **** Encrypted Controller ****
 		// Compute output
-		uCt := RGSW.Mult(xcCt, ctH, evaluator, ringQ, params)
+		uCt := RGSW.Mult(xCt, ctH, evaluator, ringQ, params)
 
 		// **** Actuator ****
 		// Decrypt output
@@ -213,11 +213,10 @@ func main() {
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := RGSW.Mult(xcCt, ctF, evaluator, ringQ, params)
+		FxCt := RGSW.Mult(xCt, ctF, evaluator, ringQ, params)
 		GyCt := RGSW.Mult(yCt, ctG, evaluator, ringQ, params)
 		RuCt := RGSW.Mult(uReEnc, ctR, evaluator, ringQ, params)
-		xcCt = RLWE.AddVec(FxCt, GyCt, params)
-		xcCt = RLWE.AddVec(xcCt, RuCt, params)
+		xCt = RLWE.AddVec(FxCt, GyCt, RuCt, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 

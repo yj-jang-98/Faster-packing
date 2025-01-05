@@ -129,7 +129,7 @@ func Dec(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale float64,
 // - ctRLWE: RLWE
 // Output
 // - valOut: m x 1 float vector
-func DecAndUnpack(ctRLWE *rlwe.Ciphertext, m int, tau int, decryptorRLWE rlwe.Decryptor, scale float64, ringQ *ring.Ring, params rlwe.Parameters) []float64 {
+func DecUnpack(ctRLWE *rlwe.Ciphertext, m int, tau int, decryptorRLWE rlwe.Decryptor, scale float64, ringQ *ring.Ring, params rlwe.Parameters) []float64 {
 	q := float64(params.Q()[0])
 	offset := uint64(q / (scale * 2.0))
 	valOut := make([]float64, m)
@@ -155,15 +155,18 @@ func DecAndUnpack(ctRLWE *rlwe.Ciphertext, m int, tau int, decryptorRLWE rlwe.De
 // Input
 // - ctRLWE1: n x 1 RLWE vector
 // - ctRLWE2: n x 1 RLWE vector
+// - ctRLWE3: n x 1 RLWE vector
 // Output
 // - ctOut: n x 1 RLWE vector
-func AddVec(ctRLWE1 []*rlwe.Ciphertext, ctRLWE2 []*rlwe.Ciphertext, params rlwe.Parameters) []*rlwe.Ciphertext {
+func AddVec(ctRLWE1 []*rlwe.Ciphertext, ctRLWE2 []*rlwe.Ciphertext, ctRLWE3 []*rlwe.Ciphertext, params rlwe.Parameters) []*rlwe.Ciphertext {
 	row := len(ctRLWE1)
 	ctOut := make([]*rlwe.Ciphertext, row)
 	for r := 0; r < row; r++ {
 		ctOut[r] = rlwe.NewCiphertext(params, ctRLWE2[0].Degree(), ctRLWE2[0].Level())
 		params.RingQ().Add(ctRLWE1[r].Value[0], ctRLWE2[r].Value[0], ctOut[r].Value[0])
+		params.RingQ().Add(ctOut[r].Value[0], ctRLWE3[r].Value[0], ctOut[r].Value[0])
 		params.RingQ().Add(ctRLWE1[r].Value[1], ctRLWE2[r].Value[1], ctOut[r].Value[1])
+		params.RingQ().Add(ctOut[r].Value[1], ctRLWE3[r].Value[1], ctOut[r].Value[1])
 	}
 
 	return ctOut
@@ -175,11 +178,13 @@ func AddVec(ctRLWE1 []*rlwe.Ciphertext, ctRLWE2 []*rlwe.Ciphertext, params rlwe.
 // - ctRLWE2: RLWE ciphertext
 // Output
 // - ctOut: RLWE ciphertext
-func Add(ctRLWE1 *rlwe.Ciphertext, ctRLWE2 *rlwe.Ciphertext, params rlwe.Parameters) *rlwe.Ciphertext {
+func Add(ctRLWE1 *rlwe.Ciphertext, ctRLWE2 *rlwe.Ciphertext, ctRLWE3 *rlwe.Ciphertext, params rlwe.Parameters) *rlwe.Ciphertext {
 	ctOut := rlwe.NewCiphertext(params, ctRLWE2.Degree(), ctRLWE2.Level())
 
 	params.RingQ().Add(ctRLWE1.Value[0], ctRLWE2.Value[0], ctOut.Value[0])
+	params.RingQ().Add(ctOut.Value[0], ctRLWE3.Value[0], ctOut.Value[0])
 	params.RingQ().Add(ctRLWE1.Value[1], ctRLWE2.Value[1], ctOut.Value[1])
+	params.RingQ().Add(ctOut.Value[1], ctRLWE3.Value[1], ctOut.Value[1])
 
 	return ctOut
 }

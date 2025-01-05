@@ -22,7 +22,7 @@ func main() {
 	// Refer to ``Homomorphic encryption standard''
 	params, _ := rlwe.NewParametersFromLiteral(rlwe.ParametersLiteral{
 		// log2 of polynomial degree
-		LogN: 11,
+		LogN: 12,
 		// Size of ciphertext modulus (Q)
 		LogQ: []int{56},
 		// Size of plaintext modulus (P)
@@ -90,7 +90,7 @@ func main() {
 		{0.1791, 0.2180, -0.2738, 0.0180},
 	}
 	// Controller initial state
-	xc0 := []float64{
+	x0 := []float64{
 		0.5,
 		0.02,
 		-1,
@@ -205,23 +205,23 @@ func main() {
 	xpUnenc := [][]float64{}
 
 	xpUnenc = append(xpUnenc, xp0)
-	xcUnenc = append(xcUnenc, xc0)
+	xcUnenc = append(xcUnenc, x0)
 
 	// Plant state
 	xp := xp0
 	// Controller state
-	xc := xc0
+	x := x0
 
 	for i := 0; i < iter; i++ {
 		y := utils.MatVecMult(C, xp)
-		u := utils.MatVecMult(H, xc)
+		u := utils.MatVecMult(H, x)
 		xp = utils.VecAdd(utils.MatVecMult(A, xp), utils.MatVecMult(B, u))
-		xc = utils.VecAdd(utils.MatVecMult(F, xc), utils.MatVecMult(G, y))
-		xc = utils.VecAdd(xc, utils.MatVecMult(R, u))
+		x = utils.VecAdd(utils.MatVecMult(F, x), utils.MatVecMult(G, y))
+		x = utils.VecAdd(x, utils.MatVecMult(R, u))
 
 		yUnenc = append(yUnenc, y)
 		uUnenc = append(uUnenc, u)
-		xcUnenc = append(xcUnenc, xc)
+		xcUnenc = append(xcUnenc, x)
 		xpUnenc = append(xpUnenc, xp)
 	}
 
@@ -239,9 +239,9 @@ func main() {
 	xp = xp0
 
 	// Dimension: 1-by-(# of elements)
-	xcScale := utils.ScalVecMult(1/(r*s), xc0)
-	xcCt := RLWE.Enc(xcScale, 1/L, *encryptorRLWE, ringQ, params)
-	xcCtPack := rlwe.NewCiphertext(params, xcCt[0].Degree(), xcCt[0].Level())
+	xScale := utils.ScalVecMult(1/(r*s), x0)
+	xCt := RLWE.Enc(xScale, 1/L, *encryptorRLWE, ringQ, params)
+	xCtPack := rlwe.NewCiphertext(params, xCt[0].Degree(), xCt[0].Level())
 
 	// For time check
 	period := make([][]float64, iter)
@@ -260,23 +260,23 @@ func main() {
 
 		// **** Encrypted Controller ****
 		// Comput output
-		uCt := RGSW.MultPack(xcCt, ctH, evaluatorRGSW, ringQ, params)
+		uCt := RGSW.MultPack(xCt, ctH, evaluatorRGSW, ringQ, params)
 
 		// **** Actuator ****
 		// Decrypt and Unapck
-		u := RLWE.DecAndUnpack(uCt, m, tau, *decryptorRLWE, r*s*s*L, ringQ, params)
+		u := RLWE.DecUnpack(uCt, m, tau, *decryptorRLWE, r*s*s*L, ringQ, params)
 
 		// Re-encrypt output
 		uReEnc := RLWE.Enc(u, 1/(r*L), *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := RGSW.MultPack(xcCt, ctF, evaluatorRGSW, ringQ, params)
+		FxCt := RGSW.MultPack(xCt, ctF, evaluatorRGSW, ringQ, params)
 		GyCt := RGSW.MultPack(yCt, ctG, evaluatorRGSW, ringQ, params)
 		RuCt := RGSW.MultPack(uReEnc, ctR, evaluatorRGSW, ringQ, params)
-		xcCtPack = RLWE.Add(FxCt, GyCt, params)
-		xcCtPack = RLWE.Add(xcCtPack, RuCt, params)
-		xcCt = RLWE.UnpackCt(xcCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
+		xCtPack = RLWE.Add(FxCt, GyCt, RuCt, params)
+
+		xCt = RLWE.UnpackCt(xCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 
