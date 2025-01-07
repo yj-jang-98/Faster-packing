@@ -58,7 +58,7 @@ func main() {
 		{0, 0.5, 0, 0},
 	}
 	// Plant initial state
-	xp0 := []float64{
+	xp_ini := []float64{
 		1,
 		1,
 		1,
@@ -90,7 +90,7 @@ func main() {
 		{0.1791, 0.2180, -0.2738, 0.0180},
 	}
 	// Controller initial state
-	x0 := []float64{
+	x_ini := []float64{
 		0.5,
 		0.02,
 		-1,
@@ -189,6 +189,8 @@ func main() {
 	ctH := RGSW.EncPack(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 	ctR := RGSW.EncPack(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 
+	fmt.Printf("Base two: %v", ctF[0].Value[0].BaseTwoDecomposition)
+
 	// ============== Simulation ==============
 	// Number of simulation steps
 	iter := 1000
@@ -204,13 +206,13 @@ func main() {
 	xcUnenc := [][]float64{}
 	xpUnenc := [][]float64{}
 
-	xpUnenc = append(xpUnenc, xp0)
-	xcUnenc = append(xcUnenc, x0)
+	xpUnenc = append(xpUnenc, xp_ini)
+	xcUnenc = append(xcUnenc, x_ini)
 
 	// Plant state
-	xp := xp0
+	xp := xp_ini
 	// Controller state
-	x := x0
+	x := x_ini
 
 	for i := 0; i < iter; i++ {
 		y := utils.MatVecMult(C, xp)
@@ -233,15 +235,14 @@ func main() {
 	yEnc := [][]float64{}
 	uEnc := [][]float64{}
 	xpEnc := [][]float64{}
-	xpEnc = append(xpEnc, xp0)
+	xpEnc = append(xpEnc, xp_ini)
 
 	// Plant state
-	xp = xp0
+	xp = xp_ini
 
 	// Dimension: 1-by-(# of elements)
-	xScale := utils.ScalVecMult(1/(r*s), x0)
-	xCt := RLWE.Enc(xScale, 1/L, *encryptorRLWE, ringQ, params)
-	xCtPack := rlwe.NewCiphertext(params, xCt[0].Degree(), xCt[0].Level())
+	xScale := utils.ScalVecMult(1/(r*s), x_ini)
+	xCtPack := RLWE.EncPack(xScale, tau, 1/L, *encryptorRLWE, ringQ, params)
 
 	// For time check
 	period := make([][]float64, iter)
@@ -254,12 +255,15 @@ func main() {
 
 		startPeriod[i] = time.Now()
 
-		// Quantize - encrypt
+		// Quantize and encrypt
 		yBar := utils.RoundVec(utils.ScalVecMult(1/r, y))
 		yCt := RLWE.Enc(yBar, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
-		// Comput output
+		// Unpack state
+		xCt := RLWE.UnpackCt(xCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
+
+		// Compute output
 		uCt := RGSW.MultPack(xCt, ctH, evaluatorRGSW, ringQ, params)
 
 		// **** Actuator ****
@@ -275,8 +279,6 @@ func main() {
 		GyCt := RGSW.MultPack(yCt, ctG, evaluatorRGSW, ringQ, params)
 		RuCt := RGSW.MultPack(uReEnc, ctR, evaluatorRGSW, ringQ, params)
 		xCtPack = RLWE.Add(FxCt, GyCt, RuCt, params)
-
-		xCt = RLWE.UnpackCt(xCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 

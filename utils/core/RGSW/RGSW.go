@@ -92,9 +92,9 @@ func EncPack(M [][]float64, tau int, encryptorRGSW *rgsw.Encryptor, levelQ int, 
 	ctOut := make([]*rgsw.Ciphertext, col)
 	for c := 0; c < col; c++ {
 		pt := rlwe.NewPlaintext(params, params.MaxLevel())
-		for j := 0; j < row; j++ {
+		for r := 0; r < row; r++ {
 			// Store in the packing slots
-			pt.Value.Coeffs[0][params.N()*j/tau] = modM[j][c]
+			pt.Value.Coeffs[0][params.N()*r/tau] = modM[r][c]
 		}
 		ringQ.NTT(pt.Value, pt.Value)
 		ctOut[c] = rgsw.NewCiphertext(params, levelQ, levelP, 0)

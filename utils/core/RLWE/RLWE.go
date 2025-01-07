@@ -93,6 +93,33 @@ func Enc(v []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.R
 	return ctOut
 }
 
+// Encrypts float vector into an RLWE ciphertext by PACKING
+// Input
+// - v: n x 1 float vector
+// Output
+// - ctOut: RLWE ciphertext
+func EncPack(v []float64, tau int, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
+	var err error
+
+	row := len(v)
+	scaleV := utils.ScalVecMult(scale, v)
+	modV := utils.ModVecFloat(scaleV, params.Q()[0])
+
+	ctOut := rlwe.NewCiphertext(params, 1, params.MaxLevel())
+	pt := rlwe.NewPlaintext(params, params.MaxLevel())
+	for r := 0; r < row; r++ {
+		// Store in the packing slots
+		pt.Value.Coeffs[0][params.N()*r/tau] = modV[r]
+	}
+	ringQ.NTT(pt.Value, pt.Value)
+	ctOut, err = encryptorRLWE.EncryptNew(pt)
+	if err != nil {
+		panic(err)
+	}
+
+	return ctOut
+}
+
 // 1) Decrypt RLWE vector -> integer vector
 // 2) Map constant terms of integer vector [0,q/2) -> [-q/2, q/2)
 // 3) Scale down
