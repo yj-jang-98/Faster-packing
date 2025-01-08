@@ -178,16 +178,16 @@ func main() {
 
 	// ==============  Encryption of controller ==============
 	// Quantization
-	Gbar := utils.ScalMatMult(1/s, G)
-	Hbar := utils.ScalMatMult(1/s, H)
-	Rbar := utils.ScalMatMult(1/s, R)
+	GBar := utils.ScalMatMult(1/s, G)
+	HBar := utils.ScalMatMult(1/s, H)
+	RBar := utils.ScalMatMult(1/s, R)
 
 	// Encryption
 	// Dimension: 1-by-(# of columns)
 	ctF := RGSW.EncPack(F, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctG := RGSW.EncPack(Gbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctH := RGSW.EncPack(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctR := RGSW.EncPack(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctG := RGSW.EncPack(GBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctH := RGSW.EncPack(HBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctR := RGSW.EncPack(RBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
@@ -239,8 +239,8 @@ func main() {
 	xp = xp_ini
 
 	// Dimension: 1-by-(# of elements)
-	xScale := utils.ScalVecMult(1/(r*s), x_ini)
-	xCtPack := RLWE.EncPack(xScale, tau, 1/L, *encryptorRLWE, ringQ, params)
+	xBar := utils.ScalVecMult(1/(r*s), x_ini)
+	xCtPack := RLWE.EncPack(xBar, tau, 1/L, *encryptorRLWE, ringQ, params)
 
 	// For time check
 	period := make([][]float64, iter)

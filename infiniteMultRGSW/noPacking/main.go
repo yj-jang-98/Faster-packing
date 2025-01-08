@@ -122,15 +122,15 @@ func main() {
 
 	// ==============  Encryption of controller ==============
 	// Quantization
-	Gbar := utils.ScalMatMult(1/s, G)
-	Rbar := utils.ScalMatMult(1/s, R)
-	Hbar := utils.ScalMatMult(1/s, H)
+	GBar := utils.ScalMatMult(1/s, G)
+	RBar := utils.ScalMatMult(1/s, R)
+	HBar := utils.ScalMatMult(1/s, H)
 
 	// Encryption
 	ctF := RGSW.Enc(F, encryptorRGSW, levelQ, levelP, params)
-	ctG := RGSW.Enc(Gbar, encryptorRGSW, levelQ, levelP, params)
-	ctH := RGSW.Enc(Hbar, encryptorRGSW, levelQ, levelP, params)
-	ctR := RGSW.Enc(Rbar, encryptorRGSW, levelQ, levelP, params)
+	ctG := RGSW.Enc(GBar, encryptorRGSW, levelQ, levelP, params)
+	ctH := RGSW.Enc(HBar, encryptorRGSW, levelQ, levelP, params)
+	ctR := RGSW.Enc(RBar, encryptorRGSW, levelQ, levelP, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
@@ -182,8 +182,8 @@ func main() {
 	xp = xp0
 
 	// Controller state encryption
-	xScale := utils.ScalVecMult(1/(r*s), x0)
-	xCt := RLWE.Enc(xScale, 1/L, *encryptorRLWE, ringQ, params)
+	xBar := utils.ScalVecMult(1/(r*s), x0)
+	xCt := RLWE.Enc(xBar, 1/L, *encryptorRLWE, ringQ, params)
 
 	// For time check
 	period := make([][]float64, iter)
