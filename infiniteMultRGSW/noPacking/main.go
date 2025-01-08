@@ -23,12 +23,12 @@ func main() {
 		// Size of ciphertext modulus (Q)
 		LogQ: []int{56},
 		// Size of plaintext modulus (P)
-		LogP:    []int{42},
+		LogP:    []int{56},
 		NTTFlag: true,
 	})
 	fmt.Println("Degree of polynomials:", params.N())
 	fmt.Println("Ciphertext modulus:", params.QBigInt())
-	fmt.Println("Ciphertext modulus:", params.PBigInt())
+	fmt.Println("Special modulus:", params.PBigInt())
 	// Default secret key distribution
 	// Each coefficient in the polynomial is uniformly sampled in [-1, 0, 1]
 	fmt.Println("Secret key distribution:", params.Xs())

@@ -25,13 +25,13 @@ func main() {
 		LogN: 12,
 		// Size of ciphertext modulus (Q)
 		LogQ: []int{56},
-		// Size of plaintext modulus (P)
-		LogP:    []int{42},
+		// Size of special modulus (P)
+		LogP:    []int{56},
 		NTTFlag: true,
 	})
 	fmt.Println("Degree of polynomials:", params.N())
 	fmt.Println("Ciphertext modulus:", params.QBigInt())
-	fmt.Println("Ciphertext modulus:", params.PBigInt())
+	fmt.Println("Special modulus:", params.PBigInt())
 	// Default secret key distribution
 	// Each coefficient in the polynomial is uniformly sampled in [-1, 0, 1]
 	fmt.Println("Secret key distribution (Ternary):", params.Xs())
@@ -189,12 +189,10 @@ func main() {
 	ctH := RGSW.EncPack(Hbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 	ctR := RGSW.EncPack(Rbar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 
-	fmt.Printf("Base two: %v", ctF[0].Value[0].BaseTwoDecomposition)
-
 	// ============== Simulation ==============
 	// Number of simulation steps
 	iter := 1000
-	fmt.Printf("Number of iterations: %v", iter)
+	fmt.Printf("Number of iterations: %v\n", iter)
 
 	// *****************
 	// 1) Plant + unencrypted (original) controller
