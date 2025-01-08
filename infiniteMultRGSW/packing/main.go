@@ -255,21 +255,25 @@ func main() {
 
 		// Quantize and encrypt
 		yBar := utils.RoundVec(utils.ScalVecMult(1/r, y))
-		yCt := RLWE.Enc(yBar, 1/L, *encryptorRLWE, ringQ, params)
+		yCtPack := RLWE.EncPack(yBar, tau, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// Unpack state
 		xCt := RLWE.UnpackCt(xCtPack, n, tau, evaluatorRLWE, ringQ, monomials, params)
 
+		// Unpack input
+		yCt := RLWE.UnpackCt(yCtPack, p, tau, evaluatorRLWE, ringQ, monomials, params)
+
 		// Compute output
-		uCt := RGSW.MultPack(xCt, ctH, evaluatorRGSW, ringQ, params)
+		uCtPack := RGSW.MultPack(xCt, ctH, evaluatorRGSW, ringQ, params)
 
 		// **** Actuator ****
 		// Decrypt and Unapck
-		u := RLWE.DecUnpack(uCt, m, tau, *decryptorRLWE, r*s*s*L, ringQ, params)
+		u := RLWE.DecUnpack(uCtPack, m, tau, *decryptorRLWE, r*s*s*L, ringQ, params)
 
 		// Re-encrypt output
-		uReEnc := RLWE.Enc(u, 1/(r*L), *encryptorRLWE, ringQ, params)
+		uBar := utils.RoundVec(utils.ScalVecMult(1/r, u))
+		uReEnc := RLWE.Enc(uBar, 1/L, *encryptorRLWE, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// State update
