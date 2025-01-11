@@ -1,7 +1,9 @@
-# Encrypted_Control_Ring-LWE
+# CDSL: Cryptography for Dynamic Systems Library
 
-Code for the methods proposed in the paper ['Ring-LWE based encrypted controller with unlimited number of recursive multiplications and effect of error growth'](https://arxiv.org/abs/2406.14372) by Yeongjun Jang, Joowon Lee, Seonhong Min, Hyesun Kwak, Junsoo Kim, and Yongsoo Song. 
-Implemented in [Lattigo](https://github.com/tuneinsight/lattigo) library.
+CDSL provides codes for implementing secure dynamic systems based on modern cryptography.
+The library features linear dynamic controllers operating over homomorphically encrypted data implemented in Go.
+The encrypted controllers are designed based on the state-of-the-art methods developed by CDSL, [SNU](https://post.cdsl.kr/) and [SEOULTECH](https://junsookim4.wordpress.com/).
+
 
 ---
 
