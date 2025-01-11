@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	utils "github.com/CDSL-EncryptedControl/2024SICE/utils"
-	RGSW "github.com/CDSL-EncryptedControl/2024SICE/utils/core/RGSW"
-	RLWE "github.com/CDSL-EncryptedControl/2024SICE/utils/core/RLWE"
+	utils "github.com/CDSL-EncryptedControl/CDSL/utils"
+	RGSW "github.com/CDSL-EncryptedControl/CDSL/utils/core/RGSW"
+	RLWE "github.com/CDSL-EncryptedControl/CDSL/utils/core/RLWE"
 	"github.com/tuneinsight/lattigo/v6/core/rgsw"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 )
