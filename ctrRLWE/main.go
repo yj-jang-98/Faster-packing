@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/CDSL-EncryptedControl/2024SICE/utils"
+	"github.com/CDSL-EncryptedControl/CDSL/utils"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
 	"github.com/tuneinsight/lattigo/v6/schemes/bgv"
@@ -143,34 +143,34 @@ func main() {
 
 	// ==============  Encryption of controller ==============
 	// dimensions
-	nx := len(A)
-	ny := len(C)
-	nu := len(B[0])
-	h := int(math.Max(float64(ny), float64(nu)))
+	n := len(A)
+	l := len(C)
+	m := len(B[0])
+	h := int(math.Max(float64(l), float64(m)))
 
 	// duplicate
-	yy0vec := make([][]float64, nx)
-	uu0vec := make([][]float64, nx)
+	yy0vec := make([][]float64, n)
+	uu0vec := make([][]float64, n)
 	for i := 0; i < nx; i++ {
-		yy0vec[i] = utils.VecDuplicate(yy0[i], nu, h)
-		uu0vec[i] = utils.VecDuplicate(uu0[i], nu, h)
+		yy0vec[i] = utils.VecDuplicate(yy0[i], m, h)
+		uu0vec[i] = utils.VecDuplicate(uu0[i], mu, h)
 	}
 
 	// Plaintext of past inputs and outputs
-	ptY := make([]*rlwe.Plaintext, nx)
-	ptU := make([]*rlwe.Plaintext, nx)
+	ptY := make([]*rlwe.Plaintext, n)
+	ptU := make([]*rlwe.Plaintext, n)
 	// Plaintext of control parameters
-	ptHy := make([]*rlwe.Plaintext, nx)
-	ptHu := make([]*rlwe.Plaintext, nx)
+	ptHy := make([]*rlwe.Plaintext, n)
+	ptHu := make([]*rlwe.Plaintext, n)
 	// Ciphertext of past inputs and outputs
-	ctY := make([]*rlwe.Ciphertext, nx)
-	ctU := make([]*rlwe.Ciphertext, nx)
+	ctY := make([]*rlwe.Ciphertext, n)
+	ctU := make([]*rlwe.Ciphertext, n)
 	// Ciphertext of control parameters
-	ctHy := make([]*rlwe.Ciphertext, nx)
-	ctHu := make([]*rlwe.Ciphertext, nx)
+	ctHy := make([]*rlwe.Ciphertext, n)
+	ctHu := make([]*rlwe.Ciphertext, n)
 
 	// Quantization - packing - encryption
-	for i := 0; i < nx; i++ {
+	for i := 0; i < n; i++ {
 		ptY[i] = bgv.NewPlaintext(params, params.MaxLevel())
 		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalVecMult(1/r, yy0vec[i])), params.PlaintextModulus()), ptY[i])
 		ctY[i], _ = encryptor.EncryptNew(ptY[i])
@@ -251,21 +251,21 @@ func main() {
 		// **** Encrypted controller ****
 		Uout, _ := eval.MulNew(ctHy[0], ctY[0])
 		eval.MulThenAdd(ctHu[0], ctU[0], Uout)
-		for j := 1; j < nx; j++ {
+		for j := 1; j < n; j++ {
 			eval.MulThenAdd(ctHy[j], ctY[j], Uout)
 			eval.MulThenAdd(ctHu[j], ctU[j], Uout)
 		}
 
 		// **** Actuator ****
 		// Plant input
-		U := make([]float64, nu)
+		U := make([]float64, m)
 		// Unpacked and re-scaled u at actuator
 		Uact := make([]uint64, params.N())
 		// u after inner sum
-		Usum := make([]uint64, nu)
+		Usum := make([]uint64, m)
 		encoder.Decode(decryptor.DecryptNew(Uout), Uact)
 		// Generate plant input
-		for k := 0; k < nu; k++ {
+		for k := 0; k < m; k++ {
 			Usum[k] = utils.VecSumUint(Uact[k*h:(k+1)*h], params.PlaintextModulus(), bredparams)
 			U[k] = float64(r * s * utils.SignFloat(float64(Usum[k]), params.PlaintextModulus()))
 		}
