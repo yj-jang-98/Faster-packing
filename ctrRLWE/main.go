@@ -21,7 +21,7 @@ func main() {
 	// log2 of polynomial degree
 	logN := 12
 	// Choose the size of plaintext modulus (2^ptSize)
-	ptSize := uint64(26)
+	ptSize := uint64(28)
 	// Choose the size of ciphertext modulus (2^ctSize)
 	ctSize := int(74)
 
@@ -105,7 +105,7 @@ func main() {
 	}
 
 	// ============== Quantization parameters ==============
-	r := 0.00050
+	r := 0.00020
 	s := 0.00010
 	fmt.Println("Scaling parameters 1/r:", 1/r, "1/s:", 1/s)
 	// *****************************************************************
@@ -151,9 +151,9 @@ func main() {
 	// duplicate
 	yy0vec := make([][]float64, n)
 	uu0vec := make([][]float64, n)
-	for i := 0; i < nx; i++ {
+	for i := 0; i < n; i++ {
 		yy0vec[i] = utils.VecDuplicate(yy0[i], m, h)
-		uu0vec[i] = utils.VecDuplicate(uu0[i], mu, h)
+		uu0vec[i] = utils.VecDuplicate(uu0[i], m, h)
 	}
 
 	// Plaintext of past inputs and outputs
@@ -190,7 +190,7 @@ func main() {
 
 	// ============== Simulation ==============
 	// Number of simulation steps
-	iter := 100
+	iter := 500
 	fmt.Printf("Number of iterations: %v\n", iter)
 
 	// 1) Plant + unencrypted (original) controller
@@ -243,7 +243,7 @@ func main() {
 		startPeriod[i] = time.Now()
 
 		// Quantize and duplicate
-		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalVecMult(1/r, utils.VecDuplicate(Y, nu, h))), params.PlaintextModulus())
+		Ysens := utils.ModVecFloat(utils.RoundVec(utils.ScalVecMult(1/r, utils.VecDuplicate(Y, m, h))), params.PlaintextModulus())
 		Ypacked := bgv.NewPlaintext(params, params.MaxLevel())
 		encoder.Encode(Ysens, Ypacked)
 		Ycin, _ := encryptor.EncryptNew(Ypacked)
@@ -271,7 +271,7 @@ func main() {
 		}
 		// Re-encryption
 		Upacked := bgv.NewPlaintext(params, params.MaxLevel())
-		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalVecMult(1/r, utils.VecDuplicate(U, nu, h))), params.PlaintextModulus()), Upacked)
+		encoder.Encode(utils.ModVecFloat(utils.RoundVec(utils.ScalVecMult(1/r, utils.VecDuplicate(U, m, h))), params.PlaintextModulus()), Upacked)
 		Ucin, _ := encryptor.EncryptNew(Upacked)
 
 		// **** Encrypted Controller ****
