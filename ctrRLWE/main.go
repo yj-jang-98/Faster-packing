@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/CDSL-EncryptedControl/2024SICE/utils"
+	"github.com/CDSL-EncryptedControl/CDSL/utils"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
 	"github.com/tuneinsight/lattigo/v6/schemes/bgv"

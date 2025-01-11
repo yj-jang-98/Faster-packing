@@ -1,4 +1,4 @@
-module github.com/CDSL-EncryptedControl/2024SICE
+module github.com/CDSL-EncryptedControl/CDSL
 
 go 1.23.3
 

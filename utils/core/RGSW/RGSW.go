@@ -1,7 +1,7 @@
 package RGSW
 
 import (
-	"github.com/CDSL-EncryptedControl/2024SICE/utils"
+	"github.com/CDSL-EncryptedControl/CDSL/utils"
 	"github.com/tuneinsight/lattigo/v6/core/rgsw"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/ring"
