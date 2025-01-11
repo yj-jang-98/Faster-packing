@@ -22,11 +22,11 @@ func main() {
 	// Refer to ``Homomorphic encryption standard''
 	params, _ := rlwe.NewParametersFromLiteral(rlwe.ParametersLiteral{
 		// log2 of polynomial degree
-		LogN: 12,
+		LogN: 13,
 		// Size of ciphertext modulus (Q)
 		LogQ: []int{56},
 		// Size of special modulus (P)
-		LogP:    []int{56},
+		LogP:    []int{51},
 		NTTFlag: true,
 	})
 	fmt.Println("Degree of polynomials:", params.N())
@@ -103,8 +103,8 @@ func main() {
 
 	// ============== Quantization parameters ==============
 	s := 1 / 10000.0
-	L := 1 / 1000.0
-	r := 1 / 1000.0
+	L := 1 / 10000.0
+	r := 1 / 10000.0
 	fmt.Printf("Scaling parameters 1/L: %v, 1/s: %v, 1/r: %v \n", 1/L, 1/s, 1/r)
 	// *****************************************************************
 	// *****************************************************************
