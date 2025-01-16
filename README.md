@@ -3,7 +3,7 @@
 Still developing readme section
 
 CDSL provides codes for implementing secure dynamic systems based on modern cryptography.
-The library features linear dynamic controllers operating over homomorphically encrypted data implemented using [Lattigo](https://github.com/tuneinsight/lattigo) version 6.1.0.
+The library features linear dynamic controllers operating over homomorphically encrypted data implemented using * [![JQuery][JQuery.com]][JQuery-url] [Lattigo](https://github.com/tuneinsight/lattigo) version 6.1.0.
 The encrypted controllers are designed based on the state-of-the-art methods developed by CDSL, [SNU](https://post.cdsl.kr/) and [SEOULTECH](https://junsookim4.wordpress.com/).
 
 
@@ -61,7 +61,7 @@ git clone https://github.com/CDSL-EncryptedControl/CDSL.git
 ```
 
 
-Then, change the directory to a folder you wish to use and run the `main.go` file. For example,
+- Change the directory to a folder you wish to use and run the `main.go` file. For example,
 
 ```
 cd ctrRGSW/noPacking
@@ -78,6 +78,16 @@ cd ctrRLWE
 go run main.go  
 ```
 on the terminal.
+
+---
+
+### License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+### Contact
+
 
 ---
 
