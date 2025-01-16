@@ -49,7 +49,9 @@ $$
 
 
 - `ctrRLWE` [2]: 
- 
+
+
+- In this example, we use the four-tank system [7] as the plant and an observer-based controller. 
 
 ---
 
@@ -112,4 +114,5 @@ consists of integers. More details can be found in Section 5 of [1] or Lemma 1 o
 
 [6] [J. Lee, D. Lee, S. Lee, J. Kim, and H. Shim, “Conversion of controllers to have integer state matrix for encrypted control: Non-minimal order approach,” in Proc. 62nd IEEE Conf. Decision Control, 2023, pp. 5091–5096.](https://ieeexplore.ieee.org/abstract/document/10383200?casa_token=lbob37tAZ-MAAAAA:vAVUmuIngRzHYefqaYHQM5TfukcAI7Lh1YmYngqcLYMj74Mtzq0xGybkntfWSd-DKwogxrvnxg)
 
+[7] [K. Johansson, “The quadruple-tank process: A multivariable laboratory process with an adjustable zero,” IEEE Trans. Control Sys. Technol., vol. 8, no. 3, pp. 456–465, 2000.](https://ieeexplore.ieee.org/abstract/document/845876?casa_token=1CWEIgmKIscAAAAA:Hh3D4_xn5B8MWVoMpQHof8glwtWpGXMuddehBoKXbZAOh2WwsDlemeiWeZ6nAwQGThjhYYw1wQ)
 
