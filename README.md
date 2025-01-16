@@ -12,7 +12,11 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 ### Overview
 
 #### Problem setting 
-Given plant 
+Given a plant 
+
+$x_p(t+1) = Ax(t) + Bu(t), \\ y(t) = Cx(t)$
+
+and a pre-designed stabilizng controller 
 
 $x(t+1) = Ax(t) + Bu(t), \quad y(t) = Cx(t)$
 
