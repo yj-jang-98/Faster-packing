@@ -14,9 +14,12 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 #### Setting 
 Given a plant 
 
-$ 
-x_p(t+1) &= Ax(t) + Bu(t), \quad x_p(0) = x_p^{\mathsf{ini}}, \\ 
-y(t) = Cx(t)
+$
+    \begin{aligned}
+    &sin⁡(α) = {opposite \over hypotenuse} = {h0 \over c} = {h2 \over b} \\
+    &cos(α) = {adjacent \over hypotenuse} = {b \over c} = {d \over b} \\
+    &tan⁡(α) = {opposite \over adjacent} = {h0 \over b} = {h2 \over d}
+    \end{aligned}
 $
 and a pre-designed stabilizng controller 
 
