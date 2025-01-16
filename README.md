@@ -96,7 +96,7 @@ If the issue is not completely obvious, please provide justifications and detail
 
 
 ### Contact
-
+Yeongjun Jang - jangyj@cdsl.kr
 
 ---
 
