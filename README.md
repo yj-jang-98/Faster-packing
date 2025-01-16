@@ -73,7 +73,7 @@ go run main.go
 ```
 or
 ```
-cd ctrRGSW/Packing
+cd ctrRGSW/packing
 go run main.go  
 ```
 or
