@@ -55,7 +55,7 @@ $$
 ---
 
 ### How to use
-Download or clone this repository using
+- Download or clone this repository using
 ```
 git clone https://github.com/CDSL-EncryptedControl/CDSL.git
 ```
@@ -79,33 +79,11 @@ go run main.go
 ```
 on the terminal.
 
-
 ---
 
-### Set parameters 
-
-* `rlwe.NewParametersFromLiteral`: Ring-LWE parameters (LogN = 11 and LogQ = 54 gives $N=2^{11}$ and some prime $q$ such that $q \approx 2^{54}$)
-
-* `s`, `L`, and `r`: Scale factors 
-
-* `iter`: Number of iterations for simulation 
-
-* `A`, `B`, and `C`: State space matrices of the discrete time plant written by
-
-> $x(t+1) = Ax(t) + Bu(t), \quad y(t) = Cx(t)$
-
-* `F`, `G`, `R` and `H`: State space matrices of the discrete time controller. 
-Given a controller of the form 
-> $x(t+1) = Kx(t) + Gy(t), \quad u(t) = Hx(t)$
-
-one can regard $u(t)$ as a fed-back input and design $R$, so that the state matrix $F:=K-RH$ of
-> $x(t+1) = (K-RH)x(t) + Gy(t)+Ru(t), \quad u(t) = Hx(t)$
-
-consists of integers. More details can be found in Section 5 of [1] or Lemma 1 of [2].
-
-* `xPlantInit`, `xContInit`: Initial conditions of the plant and the controller
-
-* `tau`: Least power of two greater than the dimensions of the state, output, and input of the controller (Only used in `Ring-GSW_Packed.go`)
+### Acknowledgements
+- This work was supported by the National Research Foundation of Korea(NRF) grant funded by the Korea government(MSIT) (No. RS-2024-00353032).
+- Special thanks to Seonhong Min, Hyesun Kwak, and Yongsoo Song with the Department of Computer Science and Engineering, Seoul National University for the great help.
 
 ---
 
