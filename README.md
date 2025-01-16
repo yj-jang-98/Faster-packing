@@ -11,7 +11,7 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 
 ### Overview
 
-#### Setting 
+
 Given a plant 
 
 $$
@@ -30,8 +30,7 @@ u(t) &= Hx(t)
 \end{aligned}
 $$
 
-
-This code is for operating linear dynamic controllers over encrypted data, using a Ring-LWE based cryptosystem. 
+this code provides two methods to operate the pre-designed dynamic controller over encrypted data, using a Ring-LWE based cryptosystem. 
 
 
 - `ctrRGSW` [1]: Unlimited number of recursive homomorhpic multiplications is supported. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
