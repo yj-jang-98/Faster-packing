@@ -38,7 +38,7 @@ this code provides two methods to operate the linear dynamic controller over enc
     - `ctrRGSW/packing`: A novel "coefficient packing" technique is applied, resulting in enhanced computation speed and memory efficiency   
     - `ctrRGSW/conversion.m`: Converts the state matrix of the controller into integers based on the apporach of [3]:
        - Given $F$ and $H$, it finds an appropriate $R$ such that $F-RH$ is an integer matrix. Then, the state dynamics of the controller can be rewritten as follows regarding $u(t)$ as a fed-back input.
-       - One may use other methods, such as [4-6], to convert the state matrix into integers without using re-encryption, while preserving the control performance. 
+       - One may use other methods, such as [4-6], to convert the state matrix into integers while preserving the control performance without using re-encryption. 
 
 
 $$
@@ -54,22 +54,35 @@ $$
 
 ---
 
-### Files
+### How to use
+Download or clone this repository using
+```
+git clone https://github.com/CDSL-EncryptedControl/CDSL.git
+```
+
 There are two files. 
 1. `Ring-GSW.go` (without packing. Section 3 of [1])
 2. `Ring-GSW_Packed.go` (with packing. Section 4 of [1])
 
-When running one file, please comment out the other one. 
-Then run
+
+Then, change the directory to a folder you wish to use and run the 'main.go' file. For example,
 
 ```
-go run Ring-GSW.go  
+cd ctrRGSW/noPacking
+go run main.go  
 ```
 or
 ```
-go run Ring-GSW_Packed.go  
+cd ctrRGSW/Packing
+go run main.go  
+```
+or
+```
+cd ctrRLWE
+go run main.go  
 ```
 on the terminal.
+
 
 ---
 
