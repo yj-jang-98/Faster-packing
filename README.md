@@ -60,12 +60,8 @@ Download or clone this repository using
 git clone https://github.com/CDSL-EncryptedControl/CDSL.git
 ```
 
-There are two files. 
-1. `Ring-GSW.go` (without packing. Section 3 of [1])
-2. `Ring-GSW_Packed.go` (with packing. Section 4 of [1])
 
-
-Then, change the directory to a folder you wish to use and run the 'main.go' file. For example,
+Then, change the directory to a folder you wish to use and run the `main.go` file. For example,
 
 ```
 cd ctrRGSW/noPacking
