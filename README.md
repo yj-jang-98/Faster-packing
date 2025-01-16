@@ -44,8 +44,8 @@ $$
 x(t+1) = (F-RH)x(t) + Gy(t) + Ru(t)
 $$
 
--[]
-    -
+
+    
         - Given $F$ and $H$, it finds an appropriate $R$ such that $F-RH$ is an integer matrix. Then, the state dynamics of the controller can be rewritten as follows regarding $u(t)$ as a fed-back input.
 
 - `ctrRLWE` [2]: 
