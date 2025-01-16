@@ -15,7 +15,7 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 Given a plant 
 
 $$\begin{aligned}
-    sin⁡(α) = {opposite \over hypotenuse} = {h0 \over c} = {h2 \over b}
+    x_p(t+1)
 \end{aligned}$$
 and a pre-designed stabilizng controller 
 
