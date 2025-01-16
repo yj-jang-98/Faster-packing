@@ -1,6 +1,5 @@
 # CDSL: Cryptography for Dynamic Systems Library
 
-Still developing readme section
 
 CDSL provides codes for implementing secure dynamic systems based on modern cryptography.
 The library features linear dynamic controllers operating over homomorphically encrypted data implemented using [Lattigo](https://github.com/tuneinsight/lattigo) version 6.1.0.
@@ -9,7 +8,7 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 
 ---
 
-### Overview
+### Features
 
 
 Given a plant 
@@ -85,6 +84,16 @@ on the terminal.
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
+
+### Contributing
+
+We **greatly appreciate** any typo and factual corrections, no matter how small the change is.
+
+If you spot an error in our code, please report it to us without hesitation.
+If the issue is not completely obvious, please provide justifications and details as necessary. 
+
+---
+
 
 ### Contact
 
