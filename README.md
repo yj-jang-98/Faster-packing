@@ -21,7 +21,7 @@ y(t) &= Cx_p(t)
 \end{aligned}
 $$
 
-and a pre-designed stabilizng controller 
+and a pre-designed stabilizng controller (which is controllable and observable)
 
 $$
 \begin{aligned}
@@ -35,9 +35,13 @@ this code provides two methods to operate the pre-designed dynamic controller ov
 
 - `ctrRGSW` [1]: Supports unlimited number of recursive homomorhpic multiplications without the use of bootstrapping. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
     - `ctrRGSW/noPacking`: Naive implementation that does not use packing. 
-    - `ctrRGSW/packing`: A novel packing algorithm is applied, resulting in enhanced computation speed and memory efficiency.
+    - `ctrRGSW/packing`: A novel "coefficient packing" technique is applied, resulting in enhanced computation speed and memory efficiency   
     - `ctrRGSW/conversion.m`: Converts the state matrix $F$ into integers based on the apporach of [2]:
-       - How?    
+       - Given $F$, $G$, and $H$, it finds an appropriate $R$ such that $F-RH$ is an integer matrix. Then, the state dynamics of the controller can be rewritten as
+         $$
+         x(t+1) = (F-RH)x(t) + Gy(t) + Ru(t)
+         $$
+         regarding $u(t)$ as a fed-back input.
 
 - `ctrRLWE` [2]: 
  
