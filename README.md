@@ -50,8 +50,7 @@ $$
 
 - `ctrRLWE` [2]: 
 
-
-- In this example, we use the four-tank system [7] as the plant and an observer-based controller. 
+- In this example, we use the four-tank system [7] as the plant and pre-design an observer-based controller. Please refer to [8] for more details regarding the setting.
 
 ---
 
@@ -116,3 +115,4 @@ consists of integers. More details can be found in Section 5 of [1] or Lemma 1 o
 
 [7] [K. Johansson, “The quadruple-tank process: A multivariable laboratory process with an adjustable zero,” IEEE Trans. Control Sys. Technol., vol. 8, no. 3, pp. 456–465, 2000.](https://ieeexplore.ieee.org/abstract/document/845876?casa_token=1CWEIgmKIscAAAAA:Hh3D4_xn5B8MWVoMpQHof8glwtWpGXMuddehBoKXbZAOh2WwsDlemeiWeZ6nAwQGThjhYYw1wQ)
 
+[8] [Y. Jang, J. Lee, and J. Kim, "Documentation on encrypted dynamic control simulation code using Ring-LWE based cryptosystems," ](link)
