@@ -55,13 +55,13 @@ $$
 ---
 
 ### How to use
-- Download or clone this repository using
+1. Download or clone this repository using
 ```
 git clone https://github.com/CDSL-EncryptedControl/CDSL.git
 ```
 
 
-- Change the directory to a folder you wish to use and run the `main.go` file. For example,
+2. Change the directory to a folder you wish to use and run the `main.go` file. For example,
 
 ```
 cd ctrRGSW/noPacking
