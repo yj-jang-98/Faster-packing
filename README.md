@@ -36,7 +36,8 @@ this code provides two methods to operate the pre-designed dynamic controller ov
 - `ctrRGSW` [1]: Supports unlimited number of recursive homomorhpic multiplications without the use of bootstrapping. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
     - `ctrRGSW/noPacking`: Naive implementation that does not use packing. 
     - `ctrRGSW/packing`: A novel packing algorithm is applied, resulting in enhanced computation speed and memory efficiency.
-    - `ctrRGSW/conversion.m`: Converts a given linear dynamic controller to have an integer state matrix by re-encrypting the output. 
+    - `ctrRGSW/conversion.m`: Converts the state matrix $F$ into integers based on the apporach of [2]:
+       - How?    
 
 - `ctrRLWE` [2]: 
  
