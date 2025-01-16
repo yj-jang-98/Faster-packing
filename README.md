@@ -38,9 +38,9 @@ this code provides two methods to operate the pre-designed dynamic controller ov
     - `ctrRGSW/packing`: A novel "coefficient packing" technique is applied, resulting in enhanced computation speed and memory efficiency   
     - `ctrRGSW/conversion.m`: Converts the state matrix $F$ into integers based on the apporach of [2]:
        - Given $F$, $G$, and $H$, it finds an appropriate $R$ such that $F-RH$ is an integer matrix. Then, the state dynamics of the controller can be rewritten as
-         $$
-         x(t+1) = (F-RH)x(t) + Gy(t) + Ru(t)
-         $$
+$$
+x(t+1) = (F-RH)x(t) + Gy(t) + Ru(t)
+$$
          regarding $u(t)$ as a fed-back input.
 
 - `ctrRLWE` [2]: 
