@@ -14,11 +14,9 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 #### Setting 
 Given a plant 
 
-$$
-\begin{aligned}
+$$\begin{aligned}
     sin⁡(α) = {opposite \over hypotenuse} = {h0 \over c} = {h2 \over b}
-\end{aligned}
-$$
+\end{aligned}$$
 and a pre-designed stabilizng controller 
 
 $x(t+1) = Ax(t) + Bu(t), \quad y(t) = Cx(t)$
