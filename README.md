@@ -36,8 +36,9 @@ this code provides two methods to operate the pre-designed dynamic controller ov
 - `ctrRGSW` [1]: Supports unlimited number of recursive homomorhpic multiplications without the use of bootstrapping. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
     - `ctrRGSW/noPacking`: Naive implementation that does not use packing. 
     - `ctrRGSW/packing`: A novel "coefficient packing" technique is applied, resulting in enhanced computation speed and memory efficiency   
-    - `ctrRGSW/conversion.m`: Converts the state matrix of the controller into integers based on the apporach of [2]:
+    - `ctrRGSW/conversion.m`: Converts the state matrix of the controller into integers based on the apporach of [3]:
        - Given $F$ and $H$, it finds an appropriate $R$ such that $F-RH$ is an integer matrix. Then, the state dynamics of the controller can be rewritten as follows regarding $u(t)$ as a fed-back input.
+       - One may use other methods such as [] to convert the state matrix into integers without using re-encryption. 
 
 
 $$
@@ -45,8 +46,7 @@ x(t+1) = (F-RH)x(t) + Gy(t) + Ru(t)
 $$
 
 
-    
-        - Given $F$ and $H$, it finds an appropriate $R$ such that $F-RH$ is an integer matrix. Then, the state dynamics of the controller can be rewritten as follows regarding $u(t)$ as a fed-back input.
+
 
 - `ctrRLWE` [2]: 
  
@@ -102,7 +102,14 @@ consists of integers. More details can be found in Section 5 of [1] or Lemma 1 o
 ### References
 [1] [Y. Jang, J. Lee, S. Min, H. Kwak, J. Kim, and Y. Song, "Ring-LWE based encrypted controller with unlimited number of recursive multiplications and effect of error growth," 2024, arXiv:2406.14372.](https://arxiv.org/abs/2406.14372)
 
-[2] [J. Kim, H. Shim, and K. Han, "Dynamic controller that operates over homomorphically encrypted data for infinite time horizon," _IEEE Trans. Autom. Control_, vol. 68, no. 2, pp. 660-672, 2023.](https://ieeexplore.ieee.org/abstract/document/9678042)
+[2] [J. Lee, D. Lee, J. Kim, and H. Shim, "Encrypted dynamic control exploiting limited number of multiplications and a method using RLWE-based cryptosystem," _IEEE Trans. Syst. Man. Cybern.: Syst._, vol. 55, no. 1, pp. 158-169, 2025.](https://ieeexplore.ieee.org/abstract/document/10730788)
 
-[3] [J. Lee, D. Lee, J. Kim, and H. Shim, "Encrypted dynamic control exploiting limited number of multiplications and a method using RLWE-based cryptosystem," _IEEE Trans. Syst. Man. Cybern.: Syst._, vol. 55, no. 1, pp. 158-169, 2025.](https://ieeexplore.ieee.org/abstract/document/10730788)
+[3] [J. Kim, H. Shim, and K. Han, "Dynamic controller that operates over homomorphically encrypted data for infinite time horizon," _IEEE Trans. Autom. Control_, vol. 68, no. 2, pp. 660-672, 2023.](https://ieeexplore.ieee.org/abstract/document/9678042)
+
+[4] [J. Kim, H. Shim, H. Sandberg, and K. H. Johansson, “Method for running dynamic systems over encrypted data for infinite time horizon without bootstrapping and re-encryption,” in Proc. 60th IEEE Conf. Decision Control, 2021, pp. 5614–5619.](https://ieeexplore.ieee.org/abstract/document/9682828?casa_token=LHR79rToQ7oAAAAA:Wz1AzFWR7VW6DYKUhLFYcoXtpMx4AIT9E_krpOpFy7QUO5lSkvPf_0ZZgPsdp65ZzaGx-ejlPA)
+
+[5] [M. S. Tavazoei, “Non-minimality of the realizations and possessing state matrices with integer elements in linear discrete-time controllers,” IEEE Trans. Autom. Control, vol. 68, no. 6, pp. 3698–3703, 2023.](https://ieeexplore.ieee.org/abstract/document/9835020?casa_token=_rdGjQLc7ZEAAAAA:QLxzC1QlnNVYriMTL1gbSjtv5U2oTwfVO5OqVFfGS0Qpz8hx7exSuJKJ9H8XBh_qDucoZt8oBg)
+
+[6] [J. Lee, D. Lee, S. Lee, J. Kim, and H. Shim, “Conversion of controllers to have integer state matrix for encrypted control: Non-minimal order approach,” in Proc. 62nd IEEE Conf. Decision Control, 2023, pp. 5091–5096.](https://ieeexplore.ieee.org/abstract/document/10383200?casa_token=lbob37tAZ-MAAAAA:vAVUmuIngRzHYefqaYHQM5TfukcAI7Lh1YmYngqcLYMj74Mtzq0xGybkntfWSd-DKwogxrvnxg)
+
 
