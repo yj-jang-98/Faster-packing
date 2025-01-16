@@ -16,7 +16,7 @@ Given a plant
 
 $$
 \begin{aligned}
-&a + b = c \\
+&x_p(t+1) = Ax_p(t) + Bu(t), \quad x_p(0) = x_p^{\mathsf{ini}} \\
 &d = e
 \end{aligned}
 $$
