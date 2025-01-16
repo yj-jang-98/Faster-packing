@@ -30,7 +30,7 @@ u(t) &= Hx(t)
 \end{aligned}
 $$
 
-this code provides two methods to operate the pre-designed dynamic controller over encrypted data, using a Ring-LWE based cryptosystem. 
+this code provides two methods to operate the linear dynamic controller over encrypted data, using a Ring-LWE based cryptosystem. 
 
 
 - `ctrRGSW` [1]: Supports unlimited number of recursive homomorhpic multiplications without the use of bootstrapping. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
