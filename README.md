@@ -15,10 +15,11 @@ This code is for operating linear dynamic controllers over encrypted data, using
 Two main features are emphasized. 
 
 - `ctrRGSW` [1]: Unlimited number of recursive homomorhpic multiplications is supported. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
-    - `ctrRGSW/noPacking`: No packing used.
+    - `ctrRGSW/noPacking`: Implementation not using packing. 
     - `ctrRGSW/packing`: A novel packing algorithm is applied, resulting in enhanced computation speed and memory efficiency.
+    - `ctrRGSW/conversion.m`: Converts a given linear dynamic controller to have an integer state matrix by re-encrypting the output. 
 
-- `ctrRLWE`
+- `ctrRLWE` [2]: 
  
 
 ---
