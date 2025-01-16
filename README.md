@@ -83,7 +83,7 @@ on the terminal.
 
 ### Acknowledgements
 - This work was supported by the National Research Foundation of Korea(NRF) grant funded by the Korea government(MSIT) (No. RS-2024-00353032).
-- Special thanks to Seonhong Min, Hyesun Kwak, and Yongsoo Song with the Department of Computer Science and Engineering, Seoul National University for the great help.
+- Special thanks to [Seonhong Min](https://snu-lukemin.github.io/), [Hyesun Kwak](https://hyesunkwak.github.io/), and [Yongsoo Song](https://yongsoosong.github.io/) with the Department of Computer Science and Engineering, Seoul National University, for the great help.
 
 ---
 
