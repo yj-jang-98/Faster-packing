@@ -16,8 +16,8 @@ Given a plant
 
 $$
 \begin{aligned}
-&x_p(t+1) = Ax_p(t) + Bu(t), \quad x_p(0) = x_p^{\mathsf{ini}} \\
-&y(t) = Cx_p(t)
+x_p(t+1) &= Ax_p(t) + Bu(t), \quad x_p(0) = x_p^{\mathsf{ini}} \\
+y(t) &= Cx_p(t)
 \end{aligned}
 $$
 
