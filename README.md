@@ -97,6 +97,8 @@ If the issue is not completely obvious, please provide justifications and detail
 
 ### Contact
 Yeongjun Jang - jangyj@cdsl.kr
+Joowon Lee - jwlee@cdsl.kr
+Junsoo Kim - junsookim@seoultech.ac.kr
 
 ---
 
