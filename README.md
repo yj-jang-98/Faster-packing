@@ -13,10 +13,13 @@ The encrypted controllers are designed based on the state-of-the-art methods dev
 
 This code is for operating linear dynamic controllers over encrypted data, using a Ring-LWE based cryptosystem. 
 Two main features are emphasized. 
-* Unlimited number of recursive homomorhpic multiplications is supported. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
-* A novel packing algorithm is applied, resulting in enhanced computation speed and memory efficiency.
 
-More details on the concept and the proofs can be found in [1].  
+- `ctrRGSW`: Unlimited number of recursive homomorhpic multiplications is supported. More specifically, the encrypted controller state is recursively multiplied to the encrypted state matrix without decryption. The effect of error growth is suppressed by the stability of the closed-loop system. 
+    - A novel packing algorithm is applied, resulting in enhanced computation speed and memory efficiency.
+    - More details on the concept and the proofs can be found in [1]. 
+
+- `ctrRLWE`
+ 
 
 ---
 
