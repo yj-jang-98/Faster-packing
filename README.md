@@ -42,6 +42,7 @@ this code provides two methods to operate the pre-designed dynamic controller ov
 $$
 x(t+1) = (F-RH)x(t) + Gy(t) + Ru(t)
 $$
+
 regarding $u(t)$ as a fed-back input.
 
 - `ctrRLWE` [2]: 
