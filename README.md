@@ -23,7 +23,13 @@ $$
 
 and a pre-designed stabilizng controller 
 
-$x(t+1) = Ax(t) + Bu(t), \quad y(t) = Cx(t)$
+$$
+\begin{aligned}
+x(t+1) &= Fx(t) + Gy(t), \quad x(0) = x^{\mathsf{ini}} \\
+u(t) &= Hx(t)
+\end{aligned}
+$$
+
 
 This code is for operating linear dynamic controllers over encrypted data, using a Ring-LWE based cryptosystem. 
 
