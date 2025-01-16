@@ -16,8 +16,8 @@ Given a plant
 
 $$
 \begin{aligned}
-a + b &= c \\
-d &= e
+&a + b = c \\
+&d = e
 \end{aligned}
 $$
 
