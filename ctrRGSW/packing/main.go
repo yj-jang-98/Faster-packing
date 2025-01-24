@@ -162,7 +162,7 @@ func main() {
 
 	// ============== Simulation ==============
 	// Number of simulation steps
-	iter := 200
+	iter := 2000
 	fmt.Printf("Number of iterations: %v\n", iter)
 
 	// *****************

@@ -126,7 +126,7 @@ func main() {
 
 	// ============== Simulation ==============
 	// Number of simulation steps
-	iter := 200
+	iter := 2000
 	fmt.Printf("Number of iterations: %v", iter)
 
 	// *****************
@@ -193,7 +193,7 @@ func main() {
 
 		// **** Encrypted Controller ****
 		// Compute output
-		uCt := RGSW.Mult(xCt, ctH, evaluator, ringQ, params)
+		uCt := RGSW.MultNaive(xCt, ctH, evaluator, ringQ, params)
 
 		// **** Actuator ****
 		// Decrypt output
@@ -201,8 +201,8 @@ func main() {
 
 		// **** Encrypted Controller ****
 		// State update
-		FxCt := RGSW.Mult(xCt, ctF, evaluator, ringQ, params)
-		GyCt := RGSW.Mult(yCt, ctG, evaluator, ringQ, params)
+		FxCt := RGSW.MultNaive(xCt, ctF, evaluator, ringQ, params)
+		GyCt := RGSW.MultNaive(yCt, ctG, evaluator, ringQ, params)
 		xCt = RLWE.AddVec(FxCt, GyCt, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}

@@ -211,3 +211,54 @@ func Add(ctRLWE1 *rlwe.Ciphertext, ctRLWE2 *rlwe.Ciphertext, params rlwe.Paramet
 
 	return ctOut
 }
+
+// ================== New functions for CDC
+
+// Tr_{nStart}^{nFinal}
+// * nStart and nFinal must be power of two
+// ** You must define the automorphism keys that are necessary when defining evaluatorRLWE
+// *** For some reason...scalar needs to be defined differently for the case of nFinal==1. Don't know why...
+func Trace(ctRLWE *rlwe.Ciphertext, nStart int, nFinal int, evaluatorRLWE *rlwe.Evaluator, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
+	// scale
+	scalar := uint64(0)
+	if nFinal == 1 {
+		scalar = params.Q()[0] - uint64((params.Q()[0]+1)/uint64(nStart))
+	} else {
+		scalar = uint64((params.Q()[0] + 1) / uint64(nStart/nFinal))
+	}
+	ctUnpack := rlwe.NewCiphertext(params, ctRLWE.Degree(), ctRLWE.Level())
+	ringQ.MulScalar(ctRLWE.Value[0], scalar, ctUnpack.Value[0])
+	ringQ.MulScalar(ctRLWE.Value[1], scalar, ctUnpack.Value[1])
+	tmpCt := rlwe.NewCiphertext(params, ctRLWE.Degree(), ctRLWE.Level())
+	for i := nStart; i > nFinal; i /= 2 {
+		// Automorphism
+		evaluatorRLWE.Automorphism(ctUnpack, uint64(i+1), tmpCt)
+
+		ringQ.Add(ctUnpack.Value[0], tmpCt.Value[0], ctUnpack.Value[0])
+		ringQ.Add(ctUnpack.Value[1], tmpCt.Value[1], ctUnpack.Value[1])
+	}
+
+	return ctUnpack
+}
+
+func Ency(y []float64, scale float64, encryptorRLWE rlwe.Encryptor, ringQ *ring.Ring, params rlwe.Parameters) *rlwe.Ciphertext {
+	var err error
+
+	row := len(y)
+	scaleY := utils.ScalVecMult(scale, y)
+	modY := utils.ModVecFloat(scaleY, params.Q()[0])
+
+	ctOut := rlwe.NewCiphertext(params, 1, params.MaxLevel())
+	pt := rlwe.NewPlaintext(params, params.MaxLevel())
+	for r := 0; r < row; r++ {
+		// Store in the packing slots
+		pt.Value.Coeffs[0][r] = modY[r]
+	}
+	ringQ.NTT(pt.Value, pt.Value)
+	ctOut, err = encryptorRLWE.EncryptNew(pt)
+	if err != nil {
+		panic(err)
+	}
+
+	return ctOut
+}
