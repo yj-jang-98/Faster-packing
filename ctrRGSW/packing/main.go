@@ -40,22 +40,22 @@ func main() {
 	// discrete Gaussian distribution with standard deviation 3.2 and bound 19.2
 	fmt.Println("Error distribution (Discrete Gaussian):", params.Xe())
 
-	// ============== Plant model ==============
+	/// ============== Plant model ==============
 	A := [][]float64{
-		{0.9984, 0, 0.0042, 0},
-		{0, 0.9989, 0, -0.0033},
-		{0, 0, 0.9958, 0},
-		{0, 0, 0, 0.9967},
+		{0.2992, -0.1606, -0.8090, -0.5803},
+		{0.2175, -0.3428, 0.3799, -0.3815},
+		{-2.2822, -1.3596, -0.9895, -0.2337},
+		{-0.6459, -0.0521, -0.9160, -0.1337},
 	}
 	B := [][]float64{
-		{0.0083, 0},
-		{0, 0.0063},
-		{0, 0.0048},
-		{0.0031, 0},
+		{0.4652, -0.6905},
+		{-0.0900, 0.3133},
+		{0.1042, 0.1570},
+		{0.0788, 0.0457},
 	}
 	C := [][]float64{
-		{0.5, 0, 0, 0},
-		{0, 0.5, 0, 0},
+		{-1.1658, 0.1679, -0.2650, 0.1867},
+		{-0.2356, -0.2303, -0.1040, -0.1006},
 	}
 	// Plant initial state
 	xp_ini := []float64{
@@ -68,33 +68,27 @@ func main() {
 	// ============== Pre-designed controller ==============
 	// F must be an integer matrix
 	F := [][]float64{
-		{-1, 0, 0, 0},
-		{0, 0, 0, 0},
-		{0, 0, 2, 0},
-		{0, 0, 0, 1},
+		{1, 1, 0, 0},
+		{2, 0, 1, 0},
+		{-1, 0, 0, 1},
+		{2, 0, 0, 0},
 	}
 	G := [][]float64{
-		{0.7160, -0.3828},
-		{-0.8131, -1.4790},
-		{0.6646, 1.1860},
-		{0.0181, -0.0060},
-	}
-	R := [][]float64{
-		{-1.7396, 0.3476},
-		{0.2588, 1.3226},
-		{0.5115, 2.4668},
-		{0.0122, 0.0030},
+		{0, 1},
+		{1, 3},
+		{0, 5},
+		{2, 1},
 	}
 	H := [][]float64{
-		{-0.8829, 0.0445, -0.0533, -0.0855},
-		{0.1791, 0.2180, -0.2738, 0.0180},
+		{1, 2, 3, 4},
+		{0, 0, 1, 2},
 	}
 	// Controller initial state
 	x_ini := []float64{
-		0.5,
-		0.02,
+		1,
+		2,
 		-1,
-		0.9,
+		1,
 	}
 	// dimensions
 	n := len(F)
@@ -102,8 +96,8 @@ func main() {
 	p := len(G[0])
 
 	// ============== Quantization parameters ==============
-	s := 1 / 10000.0
-	L := 1 / 10000.0
+	s := 1 / 1.0
+	L := 1 / 1000000.0
 	r := 1 / 10000.0
 	fmt.Printf("Scaling parameters 1/L: %v, 1/s: %v, 1/r: %v \n", 1/L, 1/s, 1/r)
 	// *****************************************************************
@@ -120,31 +114,6 @@ func main() {
 	maxDim := math.Max(math.Max(float64(n), float64(m)), float64(p))
 	tau := int(math.Pow(2, math.Ceil(math.Log2(maxDim))))
 
-	// Generate DFS index for unpack
-	dfsId := make([]int, tau)
-	for i := 0; i < tau; i++ {
-		dfsId[i] = i
-	}
-
-	tmp := make([]int, tau)
-	for i := 1; i < tau; i *= 2 {
-		id := 0
-		currBlock := tau / i
-		nextBlock := currBlock / 2
-		for j := 0; j < i; j++ {
-			for k := 0; k < nextBlock; k++ {
-				tmp[id] = dfsId[j*currBlock+2*k]
-				tmp[nextBlock+id] = dfsId[j*currBlock+2*k+1]
-				id++
-			}
-			id += nextBlock
-		}
-
-		for j := 0; j < tau; j++ {
-			dfsId[j] = tmp[j]
-		}
-	}
-
 	// Generate monomials for unpack
 	logn := int(math.Log2(float64(tau)))
 	monomials := make([]ring.Poly, logn)
@@ -155,6 +124,10 @@ func main() {
 		ringQ.MForm(monomials[i], monomials[i])
 		ringQ.NTT(monomials[i], monomials[i])
 	}
+
+	// tau = 8
+	// galEls = 3개짜리
+	// galEls = [8+1, 4+1, 2+1]
 
 	// Generate Galois elements for unpack
 	galEls := make([]uint64, int(math.Log2(float64(tau))))
@@ -180,18 +153,16 @@ func main() {
 	// Quantization
 	GBar := utils.ScalMatMult(1/s, G)
 	HBar := utils.ScalMatMult(1/s, H)
-	RBar := utils.ScalMatMult(1/s, R)
 
 	// Encryption
 	// Dimension: 1-by-(# of columns)
 	ctF := RGSW.EncPack(F, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 	ctG := RGSW.EncPack(GBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 	ctH := RGSW.EncPack(HBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctR := RGSW.EncPack(RBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 
 	// ============== Simulation ==============
 	// Number of simulation steps
-	iter := 1000
+	iter := 200
 	fmt.Printf("Number of iterations: %v\n", iter)
 
 	// *****************
@@ -217,7 +188,6 @@ func main() {
 		u := utils.MatVecMult(H, x)
 		xp = utils.VecAdd(utils.MatVecMult(A, xp), utils.MatVecMult(B, u))
 		x = utils.VecAdd(utils.MatVecMult(F, x), utils.MatVecMult(G, y))
-		x = utils.VecAdd(x, utils.MatVecMult(R, u))
 
 		yUnenc = append(yUnenc, y)
 		uUnenc = append(uUnenc, u)
@@ -271,16 +241,11 @@ func main() {
 		// Decrypt and Unapck
 		u := RLWE.DecUnpack(uCtPack, m, tau, *decryptorRLWE, r*s*s*L, ringQ, params)
 
-		// Re-encrypt output
-		uBar := utils.RoundVec(utils.ScalVecMult(1/r, u))
-		uReEnc := RLWE.Enc(uBar, 1/L, *encryptorRLWE, ringQ, params)
-
 		// **** Encrypted Controller ****
 		// State update
 		FxCt := RGSW.MultPack(xCt, ctF, evaluatorRGSW, ringQ, params)
 		GyCt := RGSW.MultPack(yCt, ctG, evaluatorRGSW, ringQ, params)
-		RuCt := RGSW.MultPack(uReEnc, ctR, evaluatorRGSW, ringQ, params)
-		xCtPack = RLWE.Add(FxCt, GyCt, RuCt, params)
+		xCtPack = RLWE.Add(FxCt, GyCt, params)
 
 		period[i] = []float64{float64(time.Since(startPeriod[i]).Microseconds()) / 1000}
 
