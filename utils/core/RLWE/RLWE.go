@@ -145,6 +145,20 @@ func Dec(ctRLWE []*rlwe.Ciphertext, decryptorRLWE rlwe.Decryptor, scale float64,
 		val = val - math.Floor((val+q/2.0)/q)*q
 		// Scale down
 		valOut[r] = val * scale
+		// row := len(ctRLWE)
+		// q := float64(params.Q()[0])
+		// valOut := make([]float64, row)
+		// for r := 0; r < row; r++ {
+		// 	pt := decryptorRLWE.DecryptNew(ctRLWE[r])
+		// 	if pt.IsNTT {
+		// 		params.RingQ().INTT(pt.Value, pt.Value)
+		// 	}
+		// 	// Constant terms
+		// 	val := float64(pt.Value.Coeffs[0][0])
+		// 	// Mapping to [-q/2, q/2)
+		// 	val = val - math.Floor((val+q/2.0)/q)*q
+		// 	// Scale down
+		// 	valOut[r] = val * scale
 	}
 	return valOut
 }

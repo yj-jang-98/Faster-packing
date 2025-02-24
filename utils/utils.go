@@ -95,7 +95,11 @@ func ModMatFloat(M [][]float64, q uint64) [][]uint64 {
 	for r := 0; r < row; r++ {
 		MOut[r] = make([]uint64, col)
 		for c := 0; c < col; c++ {
-			MOut[r][c] = uint64(M[r][c] - math.Floor(M[r][c]/qf)*qf)
+			// fmt.Println("M[r][c]=", M[r][c])
+			// fmt.Println("floor=", math.Floor(M[r][c]/qf))
+			// fmt.Println("Add=", uint64(M[r][c])-uint64(math.Floor(M[r][c]/qf))*q)
+			// MOut[r][c] = uint64(M[r][c] - math.Floor(M[r][c]/qf)*qf)
+			MOut[r][c] = uint64(M[r][c]) - uint64(math.Floor(M[r][c]/qf))*q
 		}
 	}
 	return MOut

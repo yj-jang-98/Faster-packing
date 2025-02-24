@@ -64,7 +64,6 @@ func Enc(M [][]float64, encryptor *rgsw.Encryptor, levelQ int, levelP int, param
 	row := len(M)
 	col := len(M[0])
 	modM := utils.ModMatFloat(M, params.Q()[0])
-
 	ctOut := make([][]*rgsw.Ciphertext, row)
 	for r := 0; r < row; r++ {
 		ctOut[r] = make([]*rgsw.Ciphertext, col)

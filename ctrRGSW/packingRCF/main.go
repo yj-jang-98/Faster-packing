@@ -41,62 +41,82 @@ func main() {
 
 	/// ============== Plant model ==============
 	A := [][]float64{
-		{0.2992, -0.1606, -0.8090, -0.5803},
-		{0.2175, -0.3428, 0.3799, -0.3815},
-		{-2.2822, -1.3596, -0.9895, -0.2337},
-		{-0.6459, -0.0521, -0.9160, -0.1337},
+		{1, 0.0497869485895651, 0.00240013399977883, 3.99192178318363e-05},
+		{0, 0.991480316476010, 0.0965381935679802, 0.00240013399977883},
+		{0, -0.000612279081576232, 1.04210214304071, 0.0506998325801739},
+		{0, -0.0246270901959133, 1.69541872243910, 1.04210214304071},
 	}
 	B := [][]float64{
-		{0.4652, -0.6905},
-		{-0.0900, 0.3133},
-		{0.1042, 0.1570},
-		{0.0788, 0.0457},
+		{0.00213051410434883},
+		{0.0851968352399007},
+		{0.00612279081576232},
+		{0.246270901959133},
 	}
 	C := [][]float64{
-		{-1.1658, 0.1679, -0.2650, 0.1867},
-		{-0.2356, -0.2303, -0.1040, -0.1006},
+		{1, 0, 0, 0},
 	}
 	// Plant initial state
 	xp_ini := []float64{
+		0,
+		0,
+		1,
+		-1,
+	}
+
+	F := [][]float64{
+		{1, 1, 0, 0, 0, 0, 0, 0},
+		{13, 0, 1, 0, 0, 0, 0, 0},
+		{4, 0, 0, 1, 0, 0, 0, 0},
+		{-10, 0, 0, 0, 1, 0, 0, 0},
+		{0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 0, 0, 0, 0, 0, 1, 0},
+		{0, 0, 0, 0, 0, 0, 0, 1},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+	}
+	// G := [][]float64{
+	// 	{-640.464761022051},
+	// 	{1715.36017949169},
+	// 	{-1489.05705877506},
+	// 	{389.491892102595},
+	// 	{27.2282414240346},
+	// 	{-0.604658260972883},
+	// 	{-2.36399144578786},
+	// 	{0.478391053561677},
+	// }
+	G := [][]float64{
+		{-640.4648},
+		{1715.3602},
+		{-1489.0571},
+		{389.4919},
+		{27.2282},
+		{-0.6047},
+		{-2.3640},
+		{0.4784},
+	}
+
+	H := [][]float64{
+		{10, 0, 0, 0, 0, 0, 0, 0},
+	}
+	// Controller initial state
+	x_ini := []float64{
+		1,
+		1,
+		1,
+		1,
 		1,
 		1,
 		1,
 		1,
 	}
 
-	// ============== Pre-designed controller ==============
-	// F must be an integer matrix
-	F := [][]float64{
-		{1, 1, 0, 0},
-		{2, 0, 1, 0},
-		{-1, 0, 0, 1},
-		{2, 0, 0, 0},
-	}
-	G := [][]float64{
-		{0, 1},
-		{1, 3},
-		{0, 5},
-		{2, 1},
-	}
-	H := [][]float64{
-		{1, 2, 3, 4},
-		{0, 0, 1, 2},
-	}
-	// Controller initial state
-	x_ini := []float64{
-		1,
-		2,
-		-1,
-		1,
-	}
 	// dimensions
 	n := len(F)
 	m := len(H)
 
 	// ============== Quantization parameters ==============
-	s := 1 / 1.0
-	L := 1 / 1000000.0
-	r := 1 / 10000.0
+	s := 1 / 10000.0
+	L := 1 / 100000.0
+	r := 1 / 100000.0
 	fmt.Printf("Scaling parameters 1/L: %v, 1/s: %v, 1/r: %v \n", 1/L, 1/s, 1/r)
 	// *****************************************************************
 	// *****************************************************************
@@ -140,17 +160,17 @@ func main() {
 	// ==============  Encryption of controller ==============
 	// Quantization
 	GBar := utils.ScalMatMult(1/s, G)
-	HBar := utils.ScalMatMult(1/s, H)
+	// HBar := utils.ScalMatMult(1/s, H)
 
 	// Encryption
 	// Dimension: 1-by-(# of columns)
 	ctF := RGSW.EncF(F, encryptorRGSW, levelQ, levelP, ringQ, params)
 	ctG := RGSW.EncG(GBar, encryptorRGSW, levelQ, levelP, ringQ, params)
-	ctH := RGSW.EncH(HBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
-
+	// ctH := RGSW.EncH(HBar, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
+	ctH := RGSW.EncH(H, tau, encryptorRGSW, levelQ, levelP, ringQ, params)
 	// ============== Simulation ==============
 	// Number of simulation steps
-	iter := 2000
+	iter := 100
 	fmt.Printf("Number of iterations: %v\n", iter)
 
 	// *****************
@@ -223,7 +243,7 @@ func main() {
 
 		// **** Actuator ****
 		// Decrypt and Unapck
-		u := RLWE.DecUnpack(uCtPack, m, n*tau, *decryptorRLWE, r*s*s*L, ringQ, params)
+		u := RLWE.DecUnpack(uCtPack, m, n*tau, *decryptorRLWE, r*s*L, ringQ, params)
 
 		// **** Encrypted Controller ****
 		// State update
